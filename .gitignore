@@ -24,3 +24,6 @@ build/
 # Fabric / Loom
 loom-cache/
 run/
+
+# Claude
+.claude/

@@ -173,6 +173,7 @@ public class BorderQuestConfig {
             if (s.requirements == null) s.requirements = List.of();
             if (s.categoryRequirements == null) s.categoryRequirements = List.of();
             if (s.rewards == null) s.rewards = new java.util.ArrayList<>();
+            if (s.unlockRecipes == null) s.unlockRecipes = new java.util.ArrayList<>();
         }
     }
 

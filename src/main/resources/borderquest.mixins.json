@@ -4,7 +4,11 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "SpawnProtectionMixin",
-    "PlayerDimensionMixin"
+    "PlayerDimensionMixin",
+    "RecipeLockMixin$CraftingTable",
+    "RecipeLockMixin$PlayerCrafting",
+    "RecipeLockMixin$Furnace",
+    "RecipeLockMixin$RecipeBook"
   ],
   "injectors": {
     "defaultRequire": 1

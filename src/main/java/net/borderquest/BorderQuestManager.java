@@ -59,6 +59,11 @@ public class BorderQuestManager {
     private Set<RegistryKey<Biome>> detectedBiomes = new HashSet<>();
     private SidebarDisplay sidebarDisplay;
 
+    /** Tous les item IDs qui apparaissent dans au moins un unlockRecipes (tous stades confondus). */
+    private Set<String> allLockableItems = new HashSet<>();
+    /** Item IDs débloqués par les stades 0..currentStage. */
+    private Set<String> unlockedRecipes = new HashSet<>();
+
     /** Centre de la barrière (calé sur le spawn monde). */
     private double borderCenterX = 0.5;
     private double borderCenterZ = 0.5;
@@ -87,6 +92,7 @@ public class BorderQuestManager {
     }
 
     public void setMapManager(MapIntegrationManager mm) { this.mapManager = mm; }
+    public MinecraftServer getServer() { return server; }
 
     // -----------------------------------------------------------------------
     // Persistance
@@ -146,6 +152,34 @@ public class BorderQuestManager {
     public List<ItemReq> getResolvedRequirements() { return resolvedRequirements; }
 
     // -----------------------------------------------------------------------
+    // Déblocage de recettes
+    // -----------------------------------------------------------------------
+
+    /** Recalcule l'ensemble des recettes débloquées en fonction du stade actuel. */
+    public void computeUnlockedRecipes() {
+        allLockableItems.clear();
+        unlockedRecipes.clear();
+        for (int i = 0; i < STAGES().size(); i++) {
+            StageDefinition stage = STAGES().get(i);
+            if (stage.unlockRecipes != null) {
+                allLockableItems.addAll(stage.unlockRecipes);
+                if (i <= state.currentStage) {
+                    unlockedRecipes.addAll(stage.unlockRecipes);
+                }
+            }
+        }
+    }
+
+    /**
+     * Vérifie si un item est débloqué pour le craft.
+     * Les items qui n'apparaissent dans aucun unlockRecipes sont toujours disponibles.
+     */
+    public boolean isRecipeUnlocked(String itemId) {
+        if (!allLockableItems.contains(itemId)) return true;
+        return unlockedRecipes.contains(itemId);
+    }
+
+    // -----------------------------------------------------------------------
     // Centre de la barrière
     // -----------------------------------------------------------------------
 
@@ -193,6 +227,7 @@ public class BorderQuestManager {
         }
 
         resolveRequirements();
+        computeUnlockedRecipes();
         if (mapManager != null) mapManager.updateBorder(borderCenterX, borderCenterZ, stage.borderRadius);
         BorderQuest.LOGGER.info("[BorderQuest] Barriere appliquee : rayon={} centre=({},{})",
             (int) stage.borderRadius, (int) borderCenterX, (int) borderCenterZ);
@@ -428,6 +463,7 @@ public class BorderQuestManager {
         if (nether != null) nether.getWorldBorder().setCenter(borderCenterX / scale, borderCenterZ / scale);
 
         resolveRequirements();
+        computeUnlockedRecipes();
         updateSidebar();
 
         if (mapManager != null) mapManager.updateBorder(borderCenterX, borderCenterZ, newStage.borderRadius);

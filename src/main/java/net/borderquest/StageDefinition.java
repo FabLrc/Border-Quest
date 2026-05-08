@@ -12,6 +12,9 @@ public class StageDefinition {
     public List<ItemReq> requirements;
     public List<CategoryReq> categoryRequirements;
 
+    /** Item IDs dont les recettes sont débloquées à partir de ce stade. Vide = aucun nouveau craft. */
+    public List<String> unlockRecipes = new java.util.ArrayList<>();
+
     /** Constructeur no-arg requis par Gson. */
     public StageDefinition() {}
 

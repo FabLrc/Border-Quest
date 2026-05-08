@@ -19,6 +19,7 @@ Players collect resources, donate them to **altars**, and unlock an ever-growing
 | **HUD sidebar** | Tab-list header displays current objective |
 | **Map integrations** | BlueMap, Dynmap, JourneyMap, Xaero's Minimap & World Map |
 | **Discord webhook** | Sends a message on every stage completion |
+| **Recipe locking** | Lock specific item recipes behind configurable stages |
 | **Fully configurable** | All stages, radii and behaviour tunable via JSON |
 
 ---
@@ -148,6 +149,13 @@ File location: `config/borderquest.json`
         { "itemId": "minecraft:bread",      "count": 32 }
       ],
       "categoryRequirements": [],
+      // Recipes unlocked when reaching this stage
+      "unlockRecipes": [
+        "minecraft:iron_pickaxe",
+        "minecraft:iron_axe",
+        "minecraft:iron_sword",
+        "minecraft:shield"
+      ],
       "rewards": [
         // Give 3 bread to every online player
         { "type": "item",   "itemId": "minecraft:bread", "count": 3 },
@@ -171,6 +179,7 @@ File location: `config/borderquest.json`
 | `title` | string | Displayed in chat and the tab-list sidebar |
 | `requirements` | list | Specific items required — `itemId` + `count` |
 | `categoryRequirements` | list | Biome-adaptive requirements — `category` + `count` |
+| `unlockRecipes` | list | Item IDs whose crafting recipes become unlocked at this stage (see Recipe locking) |
 | `rewards` | list | Rewards given to all online players on stage validation |
 
 **Built-in categories**: `logs`, `planks`, `wool`, `sand`, `stone` — resolved to the most common variants found in the spawn biome.
@@ -252,6 +261,34 @@ By default:
 
 Attempting to enter a locked dimension cancels the teleport and displays a red message.
 Customise or remove locks in `borderquest.json` under `worldLocks`.
+
+---
+
+## Recipe locking
+
+Lock certain item recipes behind stages. When a recipe is locked, the crafting result slot stays empty (crafting table, player inventory 2x2, furnace) and the recipe book auto-craft is blocked.
+
+> **Server-side limitation.** Since this mod runs only on the server, locked recipes may still appear in the client's recipe book — but they cannot be crafted.
+
+Add `unlockRecipes` inside a stage definition:
+
+```jsonc
+{
+  "borderRadius": 25,
+  "title": "Iron Age",
+  "requirements": [{ "itemId": "minecraft:iron_ingot", "count": 32 }],
+  "unlockRecipes": [
+    "minecraft:iron_pickaxe",
+    "minecraft:iron_axe",
+    "minecraft:iron_sword",
+    "minecraft:shield"
+  ],
+  "rewards": []
+}
+```
+
+Recipes are **cumulative**: at stage N, all recipes from stages 0 through N are unlocked.
+Items **not listed** in any `unlockRecipes` are always craftable (backward compatible).
 
 ---
 
