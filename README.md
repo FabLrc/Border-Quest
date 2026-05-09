@@ -1,5 +1,9 @@
 # Border Quest
 
+[![Modrinth Version](https://img.shields.io/modrinth/v/border-quest?label=Modrinth&logo=modrinth)](https://modrinth.com/project/border-quest)
+[![Modrinth Downloads](https://img.shields.io/modrinth/dt/border-quest?label=downloads&logo=modrinth)](https://modrinth.com/project/border-quest)
+[![Modrinth Game Versions](https://img.shields.io/modrinth/game-versions/border-quest?label=game%20versions&logo=modrinth)](https://modrinth.com/project/border-quest)
+
 A **server-side Fabric mod** for Minecraft 1.21 that turns your world border into a cooperative progression challenge.
 Players collect resources, donate them to **altars**, and unlock an ever-growing world — stage by stage.
 
