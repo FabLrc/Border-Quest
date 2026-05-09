@@ -1,0 +1,44 @@
+# Changelog
+
+All notable changes to this project are documented here.
+The format is based on [Keep a Changelog](https://keepachangelog.com/).
+
+## [1.1.0] — 2026-05-09
+
+### Added
+
+- **Recipe locking**: Lock specific item recipes behind configurable stages.
+  Each stage has an `unlockRecipes` list. Recipes are cumulative — at stage N,
+  all recipes from stages 0 through N are unlocked. Covers crafting table,
+  player inventory (2×2), furnace/blast furnace/smoker, and recipe book.
+- **Dynamic versioning**: Version is now set via git tags (`vX.Y.Z`).
+  Local builds use the `gradle.properties` fallback.
+- **Separate branches per Minecraft version**: `develop` (main development),
+  `1.21.11` (stable releases), plus future version branches.
+- **CI workflows**:
+  - `build.yml` — compiles on every push/PR (all branches, no release).
+  - `release.yml` — triggered by tags `v*`; builds, creates a GitHub Release,
+    and publishes to Modrinth automatically.
+- **JAR naming**: Includes both the mod version and the Minecraft version
+  (`border-quest-<mcversion>-<version>.jar`).
+- **AGENTS.md** — instruction file for AI agents working in this repo.
+
+### Changed
+
+- **Build system**: Replaced `build.bat` with direct `gradlew.bat` calls in CI.
+  Removed `build.bat` and `install.bat`.
+- **Documentation**: README updated with build instructions, branch strategy,
+  and recipe locking documentation.
+
+## [1.0.0] — 2026-05-09
+
+### Added
+
+- Base mod: progressive world border, altar system, stage rewards,
+  dimension locks, donation leaderboard, altar particles, chat announcements,
+  HUD sidebar.
+- Map integrations: BlueMap, Dynmap, JourneyMap, Xaero's Minimap & World Map
+  (reflection-based).
+- Discord webhook on stage completion.
+- Fully configurable via `config/borderquest.json`.
+- Server-side only (no client installation required).

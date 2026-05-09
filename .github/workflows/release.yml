@@ -32,12 +32,26 @@ jobs:
       - name: Build
         run: .\gradlew.bat build -Pmod_version="$env:MOD_VERSION"
 
+      - name: Extract changelog for this version
+        shell: pwsh
+        run: |
+          $v = $env:MOD_VERSION
+          $escaped = $v -replace '\.', '\.'
+          $content = Get-Content CHANGELOG.md -Raw
+          $pattern = "## \[$escaped\].*?(?=\r?\n## \[|\z)"
+          $match = [regex]::Match($content, $pattern, [System.Text.RegularExpressions.RegexOptions]::Singleline)
+          if ($match.Success) {
+            $match.Value.Trim() | Set-Content release_body.md
+          } else {
+            "Border Quest v$v" | Set-Content release_body.md
+          }
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: "v${{ env.MOD_VERSION }}"
-          body: "Border Quest v${{ env.MOD_VERSION }}"
+          body_path: release_body.md
           files: build/libs/*.jar
           draft: false
           prerelease: false

@@ -53,6 +53,7 @@ server/                               # actual server runtime
 - Commands use Fabric API's `CommandRegistrationCallback`. All start with `/bq`.
 - Gson serialization for both config and saved state. Config auto-generated on first server start.
 - Recipe locking via `unlockRecipes` per stage. Uses 4 inner mixin classes in `RecipeLockMixin.java` targeting `CraftingScreenHandler`, `PlayerScreenHandler`, `AbstractFurnaceBlockEntity`, and `ServerPlayNetworkHandler`. The `ServerRecipeManager` API (not `RecipeManager`) is used for recipe lookup: `getFirstMatch()` and `get(NetworkRecipeId)`.
+- **Update `CHANGELOG.md`** with every user-facing change. Follow the existing format and add a new `## [Unreleased]` section if none exists.
 
 ## gradle.properties
 
