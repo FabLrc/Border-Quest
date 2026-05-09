@@ -16,11 +16,11 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Java 21
+      - name: Setup Java 25
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '25'
           cache: 'gradle'
 
       - name: Extract version from tag
@@ -54,7 +54,7 @@ jobs:
           body_path: release_body.md
           files: build/libs/*.jar
           draft: false
-          prerelease: false
+          prerelease: true
 
       - name: Publish to Modrinth
         run: .\gradlew.bat modrinth -Pmod_version="$env:MOD_VERSION"
