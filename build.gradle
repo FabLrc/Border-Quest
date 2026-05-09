@@ -60,9 +60,10 @@ jar {
 modrinth {
     token = System.getenv("MODRINTH_TOKEN")
     projectId = "border-quest"
-    versionNumber = project.version
+    versionNumber = "${project.version}"
     versionType = "beta"
     uploadFile = jar
+    changelog = project.findProperty('changelog') ?: "Border Quest v${project.version}"
     gameVersions = ["${project.minecraft_version}"]
     loaders = ["fabric"]
     dependencies {

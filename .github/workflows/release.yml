@@ -57,6 +57,9 @@ jobs:
           prerelease: true
 
       - name: Publish to Modrinth
-        run: .\gradlew.bat modrinth -Pmod_version="$env:MOD_VERSION"
+        shell: pwsh
+        run: |
+          $changelog = Get-Content release_body.md -Raw
+          .\gradlew.bat modrinth -Pmod_version="$env:MOD_VERSION" "-Pchangelog=$changelog"
         env:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
