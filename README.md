@@ -1,5 +1,9 @@
 # Border Quest
 
+[![Modrinth Version](https://img.shields.io/modrinth/v/border-quest?label=Modrinth&logo=modrinth)](https://modrinth.com/project/border-quest)
+[![Modrinth Downloads](https://img.shields.io/modrinth/dt/border-quest?label=downloads&logo=modrinth)](https://modrinth.com/project/border-quest)
+[![Modrinth Game Versions](https://img.shields.io/modrinth/game-versions/border-quest?label=game%20versions&logo=modrinth)](https://modrinth.com/project/border-quest)
+
 A **server-side Fabric mod** for Minecraft 1.21 that turns your world border into a cooperative progression challenge.
 Players collect resources, donate them to **altars**, and unlock an ever-growing world — stage by stage.
 
@@ -309,11 +313,33 @@ Back up this file if you want to preserve progress between map resets.
 ```bash
 git clone <repo>
 cd border-quest-mod
-./gradlew build
-# Output: build/libs/border-quest-mod-x.x.x.jar
+# macOS / Linux :
+java -jar gradle/wrapper/gradle-wrapper.jar build
+# Windows :
+gradlew build
+# Output: build/libs/border-quest-<mcversion>-<version>.jar
 ```
 
 **Requirements:** Java 21, internet access (to download Fabric Loom and BlueMap API).
+
+Override the mod version for testing:
+```bash
+java -jar gradle/wrapper/gradle-wrapper.jar build -Pmod_version=1.1.0
+```
+
+This project uses **separate branches per Minecraft version**:
+- `develop` — main development branch (no releases)
+- `1.21.11` — stable releases for Minecraft 1.21.11
+- `1.22`, etc. — future Minecraft version support
+
+Releases are triggered by **git tags** on a version branch:
+```bash
+git checkout 1.21.11
+git tag v1.1.0
+git push origin v1.1.0
+```
+
+This builds, creates a GitHub Release, and publishes to Modrinth automatically.
 
 Dependencies at a glance:
 
