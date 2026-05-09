@@ -50,7 +50,7 @@ jar {
 
 modrinth {
     token = System.getenv("MODRINTH_TOKEN")
-    projectId = "borderquest"
+    projectId = "border-quest"
     versionNumber = project.version
     versionType = "release"
     uploadFile = remapJar
