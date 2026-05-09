@@ -1,21 +1,17 @@
 package net.borderquest;
 
-import net.minecraft.network.packet.s2c.play.PlayerListHeaderS2CPacket;
-import net.minecraft.scoreboard.ScoreboardDisplaySlot;
-import net.minecraft.scoreboard.ScoreboardObjective;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.protocol.game.ClientboundTabListPacket;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.world.scores.DisplaySlot;
+import net.minecraft.world.scores.Objective;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * Affiche l'état de la quête dans le header/footer du Tab (liste des joueurs).
- * La sidebar scoreboard est désactivée.
- */
 public class SidebarDisplay {
 
     private static final String OBJECTIVE_NAME = "bq_sidebar";
@@ -26,44 +22,36 @@ public class SidebarDisplay {
         this.server = server;
     }
 
-    /**
-     * Supprime l'ancienne sidebar scoreboard si elle existait encore.
-     */
     public void init() {
         var scoreboard = server.getScoreboard();
-        ScoreboardObjective existing = scoreboard.getNullableObjective(OBJECTIVE_NAME);
+        Objective existing = scoreboard.getObjective(OBJECTIVE_NAME);
         if (existing != null) scoreboard.removeObjective(existing);
-        // S'assurer qu'aucun objectif n'est affiché dans la sidebar
-        scoreboard.setObjectiveSlot(ScoreboardDisplaySlot.SIDEBAR, null);
+        scoreboard.setDisplayObjective(DisplaySlot.SIDEBAR, null);
     }
 
-    /**
-     * Envoie le header/footer à tous les joueurs connectés.
-     */
     public void update(BorderQuestManager manager) {
-        Text header = buildHeader(manager);
-        Text footer = buildFooter(manager);
-        var packet = new PlayerListHeaderS2CPacket(header, footer);
-        server.getPlayerManager().sendToAll(packet);
+        Component header = buildHeader(manager);
+        Component footer = buildFooter(manager);
+        var packet = new ClientboundTabListPacket(header, footer);
+        server.getPlayerList().broadcastAll(packet);
     }
 
     public void clear() {
-        // Vider le header/footer
-        var packet = new PlayerListHeaderS2CPacket(Text.empty(), Text.empty());
-        server.getPlayerManager().sendToAll(packet);
+        var packet = new ClientboundTabListPacket(Component.empty(), Component.empty());
+        server.getPlayerList().broadcastAll(packet);
     }
 
     // -----------------------------------------------------------------------
 
-    private Text buildHeader(BorderQuestManager manager) {
-        MutableText t = Text.empty();
+    private Component buildHeader(BorderQuestManager manager) {
+        MutableComponent t = Component.empty();
         QuestState state = manager.getState();
 
-        t.append(Text.literal("\u2605 Border Quest \u2605\n").formatted(Formatting.GOLD, Formatting.BOLD));
+        t.append(Component.literal("\u2605 Border Quest \u2605\n").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
 
         if (manager.isLastStage()) {
-            t.append(Text.literal("LA BARRIERE EST TOMBEE !\n").formatted(Formatting.GREEN, Formatting.BOLD));
-            t.append(Text.literal("Felicitations, vous avez tout accompli !").formatted(Formatting.YELLOW));
+            t.append(Component.literal("LA BARRIERE EST TOMBEE !\n").withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD));
+            t.append(Component.literal("Felicitations, vous avez tout accompli !").withStyle(ChatFormatting.YELLOW));
             return t;
         }
 
@@ -71,33 +59,33 @@ public class SidebarDisplay {
         int totalStages = BorderQuestManager.STAGES().size() - 1;
         StageDefinition stage = manager.getCurrentStage();
 
-        t.append(Text.literal("Stade " + stageNum + "/" + totalStages).formatted(Formatting.AQUA, Formatting.BOLD));
-        t.append(Text.literal(" \u2014 ").formatted(Formatting.DARK_GRAY));
-        t.append(Text.literal(stage.title + "\n").formatted(Formatting.WHITE));
-        t.append(Text.literal("Rayon actuel : ").formatted(Formatting.GRAY));
-        t.append(Text.literal((int) stage.borderRadius + " blocs\n").formatted(Formatting.WHITE));
-        t.append(Text.literal("\n"));
-        t.append(Text.literal("Ressources a collecter :\n").formatted(Formatting.YELLOW));
+        t.append(Component.literal("Stade " + stageNum + "/" + totalStages).withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD));
+        t.append(Component.literal(" \u2014 ").withStyle(ChatFormatting.DARK_GRAY));
+        t.append(Component.literal(stage.title + "\n").withStyle(ChatFormatting.WHITE));
+        t.append(Component.literal("Rayon actuel : ").withStyle(ChatFormatting.GRAY));
+        t.append(Component.literal((int) stage.borderRadius + " blocs\n").withStyle(ChatFormatting.WHITE));
+        t.append(Component.literal("\n"));
+        t.append(Component.literal("Ressources a collecter :\n").withStyle(ChatFormatting.YELLOW));
 
         for (StageDefinition.ItemReq req : manager.getResolvedRequirements()) {
             int submitted = Math.min(state.submittedItems.getOrDefault(req.itemId(), 0), req.count());
             boolean done  = submitted >= req.count();
             String name   = req.itemId().replace("minecraft:", "");
-            Formatting color = done ? Formatting.GREEN : Formatting.RED;
+            ChatFormatting color = done ? ChatFormatting.GREEN : ChatFormatting.RED;
             String symbol = done ? "\u2714 " : "\u2718 ";
-            t.append(Text.literal("  " + symbol + name + " : " + submitted + "/" + req.count() + "\n").formatted(color));
+            t.append(Component.literal("  " + symbol + name + " : " + submitted + "/" + req.count() + "\n").withStyle(color));
         }
 
         return t;
     }
 
-    private Text buildFooter(BorderQuestManager manager) {
+    private Component buildFooter(BorderQuestManager manager) {
         QuestState state = manager.getState();
-        if (state.playerDonations.isEmpty()) return Text.empty();
+        if (state.playerDonations.isEmpty()) return Component.empty();
 
-        MutableText t = Text.empty();
-        t.append(Text.literal("\n"));
-        t.append(Text.literal("Top Donateurs\n").formatted(Formatting.GOLD, Formatting.BOLD));
+        MutableComponent t = Component.empty();
+        t.append(Component.literal("\n"));
+        t.append(Component.literal("Top Donateurs\n").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
 
         List<Map.Entry<String, Integer>> top = state.playerDonations.entrySet().stream()
             .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
@@ -107,7 +95,7 @@ public class SidebarDisplay {
         String[] prefixes = {"\u00a76#1 ", "\u00a77#2 ", "\u00a77#3 "};
         for (int i = 0; i < top.size(); i++) {
             String name = state.playerNames.getOrDefault(top.get(i).getKey(), "???");
-            t.append(Text.literal(prefixes[i] + name + " - " + top.get(i).getValue() + "\n"));
+            t.append(Component.literal(prefixes[i] + name + " - " + top.get(i).getValue() + "\n"));
         }
 
         return t;

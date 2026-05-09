@@ -1,9 +1,9 @@
 package net.borderquest.mixin;
 
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 
@@ -19,7 +19,7 @@ public class SpawnProtectionMixin {
      * @reason Tous les joueurs doivent pouvoir interagir librement dans la zone.
      */
     @Overwrite
-    public boolean isSpawnProtected(ServerWorld world, BlockPos pos, PlayerEntity player) {
+    public boolean isUnderSpawnProtection(ServerLevel level, BlockPos pos, Player player) {
         return false;
     }
 }

@@ -2,7 +2,7 @@ package net.borderquest.map;
 
 import net.borderquest.BorderQuest;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -24,15 +24,12 @@ import java.util.List;
 public class XaeroMapHook {
 
     /** Couleur orange pour les autels (RGB 0xFFAA00). */
-    private static final int ALTAR_COLOR = 0; // index couleur Xaero (0 = blanc, 6 = orange)
+    private static final int ALTAR_COLOR = 6; // index couleur Xaero (0 = blanc, 6 = orange)
     private static final String DIM_OVERWORLD = "minecraft/overworld";
 
-    @SuppressWarnings("unused")
-    private final MinecraftServer server;
     private final boolean useWorldMap; // true = World Map, false = Minimap
 
     public XaeroMapHook(MinecraftServer server, boolean useWorldMap) {
-        this.server = server;
         this.useWorldMap = useWorldMap;
     }
 

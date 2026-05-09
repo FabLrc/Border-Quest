@@ -7,6 +7,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 import static net.borderquest.StageDefinition.CategoryReq;
@@ -172,8 +173,8 @@ public class BorderQuestConfig {
         for (StageDefinition s : stages) {
             if (s.requirements == null) s.requirements = List.of();
             if (s.categoryRequirements == null) s.categoryRequirements = List.of();
-            if (s.rewards == null) s.rewards = new java.util.ArrayList<>();
-            if (s.unlockRecipes == null) s.unlockRecipes = new java.util.ArrayList<>();
+            if (s.rewards == null) s.rewards = new ArrayList<>();
+            if (s.unlockRecipes == null) s.unlockRecipes = new ArrayList<>();
         }
     }
 
@@ -186,7 +187,7 @@ public class BorderQuestConfig {
     // -----------------------------------------------------------------------
 
     private static List<WorldLock> defaultWorldLocks() {
-        return new java.util.ArrayList<>(List.of(
+        return new ArrayList<>(List.of(
             new WorldLock("minecraft:the_nether", 5),
             new WorldLock("minecraft:the_end",    7)
         ));

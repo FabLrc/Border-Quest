@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '1.13.6'
+    id 'net.fabricmc.fabric-loom' version '1.16.1'
     id 'maven-publish'
     id 'com.modrinth.minotaur' version '2.+'
 }
@@ -12,17 +12,17 @@ base {
 }
 
 repositories {
-    maven { url "https://repo.bluecolored.de/releases" }
-    maven { url "https://repo.mikeprimm.com/" }
+    // BlueMap - commenté car pas encore disponible pour 26.1 (à réactiver quand une version compatible sort)
+    // maven { url "https://repo.bluecolored.de/releases" }
+    // maven { url "https://repo.mikeprimm.com/" }
 }
 
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    compileOnly "de.bluecolored:bluemap-api:2.7.7"
+    // compileOnly "de.bluecolored:bluemap-api:2.7.7"
 }
 
 processResources {
@@ -33,13 +33,22 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-    it.options.release = 21
+    it.options.release = 25
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
     withSourcesJar()
+}
+
+loom {
+    runConfigs.server {
+        ideConfigGenerated = true
+    }
+    runConfigs.client {
+        ideConfigGenerated = true
+    }
 }
 
 jar {
@@ -53,7 +62,7 @@ modrinth {
     projectId = "border-quest"
     versionNumber = project.version
     versionType = "release"
-    uploadFile = remapJar
+    uploadFile = jar
     gameVersions = ["${project.minecraft_version}"]
     loaders = ["fabric"]
     dependencies {

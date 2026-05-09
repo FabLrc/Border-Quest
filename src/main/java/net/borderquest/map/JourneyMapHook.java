@@ -2,7 +2,7 @@ package net.borderquest.map;
 
 import net.borderquest.BorderQuest;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -20,11 +20,7 @@ public class JourneyMapHook {
 
     private static final String DIM_OVERWORLD = "minecraft:overworld";
 
-    @SuppressWarnings("unused")
-    private final MinecraftServer server;
-
     public JourneyMapHook(MinecraftServer server) {
-        this.server = server;
     }
 
     public void register() {

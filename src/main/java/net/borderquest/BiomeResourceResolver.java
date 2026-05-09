@@ -1,125 +1,102 @@
 package net.borderquest;
 
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.BiomeKeys;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.Biomes;
 
 import java.util.*;
 
-/**
- * Scanne les biomes dans le rayon de la barrière et résout les catégories
- * de ressources en items concrets disponibles localement.
- */
 public class BiomeResourceResolver {
 
-    /**
-     * Mapping biome -> item pour chaque catégorie.
-     * Clé : nom de catégorie (ex: "logs").
-     * Valeur : liste ordonnée de (BiomeKey[], itemId).
-     */
     private static final Map<String, List<BiomeMapping>> CATEGORY_MAPPINGS = new HashMap<>();
 
-    /** Fallback par catégorie si aucun biome ne correspond. */
     private static final Map<String, String> CATEGORY_FALLBACKS = new HashMap<>();
 
     static {
-        // ---- Catégorie "logs" ----
         List<BiomeMapping> logMappings = new ArrayList<>();
 
         logMappings.add(new BiomeMapping("minecraft:oak_log",
-            BiomeKeys.PLAINS, BiomeKeys.SUNFLOWER_PLAINS,
-            BiomeKeys.FOREST, BiomeKeys.FLOWER_FOREST,
-            BiomeKeys.SWAMP, BiomeKeys.MEADOW,
-            BiomeKeys.RIVER, BiomeKeys.WINDSWEPT_HILLS,
-            BiomeKeys.WINDSWEPT_GRAVELLY_HILLS,
-            BiomeKeys.WINDSWEPT_FOREST,
-            BiomeKeys.STONY_PEAKS, BiomeKeys.STONY_SHORE));
+            Biomes.PLAINS, Biomes.SUNFLOWER_PLAINS,
+            Biomes.FOREST, Biomes.FLOWER_FOREST,
+            Biomes.SWAMP, Biomes.MEADOW,
+            Biomes.RIVER, Biomes.WINDSWEPT_HILLS,
+            Biomes.WINDSWEPT_GRAVELLY_HILLS,
+            Biomes.WINDSWEPT_FOREST,
+            Biomes.STONY_PEAKS, Biomes.STONY_SHORE));
 
         logMappings.add(new BiomeMapping("minecraft:spruce_log",
-            BiomeKeys.TAIGA, BiomeKeys.SNOWY_TAIGA,
-            BiomeKeys.OLD_GROWTH_PINE_TAIGA, BiomeKeys.OLD_GROWTH_SPRUCE_TAIGA,
-            BiomeKeys.SNOWY_PLAINS, BiomeKeys.GROVE, BiomeKeys.SNOWY_SLOPES));
+            Biomes.TAIGA, Biomes.SNOWY_TAIGA,
+            Biomes.OLD_GROWTH_PINE_TAIGA, Biomes.OLD_GROWTH_SPRUCE_TAIGA,
+            Biomes.SNOWY_PLAINS, Biomes.GROVE, Biomes.SNOWY_SLOPES));
 
         logMappings.add(new BiomeMapping("minecraft:birch_log",
-            BiomeKeys.BIRCH_FOREST, BiomeKeys.OLD_GROWTH_BIRCH_FOREST));
+            Biomes.BIRCH_FOREST, Biomes.OLD_GROWTH_BIRCH_FOREST));
 
         logMappings.add(new BiomeMapping("minecraft:acacia_log",
-            BiomeKeys.SAVANNA, BiomeKeys.SAVANNA_PLATEAU, BiomeKeys.WINDSWEPT_SAVANNA));
+            Biomes.SAVANNA, Biomes.SAVANNA_PLATEAU, Biomes.WINDSWEPT_SAVANNA));
 
         logMappings.add(new BiomeMapping("minecraft:jungle_log",
-            BiomeKeys.JUNGLE, BiomeKeys.SPARSE_JUNGLE, BiomeKeys.BAMBOO_JUNGLE));
+            Biomes.JUNGLE, Biomes.SPARSE_JUNGLE, Biomes.BAMBOO_JUNGLE));
 
         logMappings.add(new BiomeMapping("minecraft:dark_oak_log",
-            BiomeKeys.DARK_FOREST, BiomeKeys.PALE_GARDEN));
+            Biomes.DARK_FOREST, Biomes.PALE_GARDEN));
 
         logMappings.add(new BiomeMapping("minecraft:mangrove_log",
-            BiomeKeys.MANGROVE_SWAMP));
+            Biomes.MANGROVE_SWAMP));
 
         logMappings.add(new BiomeMapping("minecraft:cherry_log",
-            BiomeKeys.CHERRY_GROVE));
+            Biomes.CHERRY_GROVE));
 
         CATEGORY_MAPPINGS.put("logs", logMappings);
-        CATEGORY_FALLBACKS.put("logs", "minecraft:sandstone");
+        CATEGORY_FALLBACKS.put("logs", "minecraft:oak_log");
     }
 
-    // -----------------------------------------------------------------------
-
-    /**
-     * Scanne les biomes dans un carré de rayon donné autour du centre (0, 0).
-     */
-    public static Set<RegistryKey<Biome>> scanBiomes(ServerWorld world, double radius) {
-        Set<RegistryKey<Biome>> found = new HashSet<>();
-        int step = Math.max(4, (int) (radius / 10)); // pas adaptatif
+    public static Set<ResourceKey<Biome>> scanBiomes(ServerLevel level, double radius) {
+        Set<ResourceKey<Biome>> found = new HashSet<>();
+        int step = Math.max(4, (int) (radius / 10));
         step = Math.min(step, 16);
         int r = (int) radius;
 
         for (int x = -r; x <= r; x += step) {
             for (int z = -r; z <= r; z += step) {
-                RegistryEntry<Biome> biomeEntry = world.getBiomeAccess().getBiome(new BlockPos(x, 64, z));
-                biomeEntry.getKey().ifPresent(found::add);
+                Holder<Biome> biomeEntry = level.getBiome(new BlockPos(x, 64, z));
+                biomeEntry.unwrapKey().ifPresent(found::add);
             }
         }
 
         return found;
     }
 
-    /**
-     * Résout une catégorie en un ItemReq concret en fonction des biomes détectés.
-     */
     public static StageDefinition.ItemReq resolveCategory(String category, int count,
-                                                           Set<RegistryKey<Biome>> presentBiomes) {
+                                                           Set<ResourceKey<Biome>> presentBiomes) {
         List<BiomeMapping> mappings = CATEGORY_MAPPINGS.get(category);
         if (mappings == null) {
             BorderQuest.LOGGER.warn("[BorderQuest] Categorie inconnue : {}", category);
             return new StageDefinition.ItemReq("minecraft:cobblestone", count);
         }
 
-        // Chercher le premier mapping dont un biome est présent
         for (BiomeMapping mapping : mappings) {
-            for (RegistryKey<Biome> biome : mapping.biomes) {
+            for (ResourceKey<Biome> biome : mapping.biomes) {
                 if (presentBiomes.contains(biome)) {
                     return new StageDefinition.ItemReq(mapping.itemId, count);
                 }
             }
         }
 
-        // Fallback
         String fallback = CATEGORY_FALLBACKS.getOrDefault(category, "minecraft:cobblestone");
         BorderQuest.LOGGER.info("[BorderQuest] Aucun biome correspondant pour '{}', fallback: {}", category, fallback);
         return new StageDefinition.ItemReq(fallback, count);
     }
 
-    // -----------------------------------------------------------------------
-
     private static class BiomeMapping {
         final String itemId;
-        final List<RegistryKey<Biome>> biomes;
+        final List<ResourceKey<Biome>> biomes;
 
         @SafeVarargs
-        BiomeMapping(String itemId, RegistryKey<Biome>... biomes) {
+        BiomeMapping(String itemId, ResourceKey<Biome>... biomes) {
             this.itemId = itemId;
             this.biomes = List.of(biomes);
         }

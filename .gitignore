@@ -27,3 +27,7 @@ run/
 
 # Claude
 .claude/
+
+# Servers folder
+server/
+start-server.sh

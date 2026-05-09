@@ -4,7 +4,7 @@
 [![Modrinth Downloads](https://img.shields.io/modrinth/dt/border-quest?label=downloads&logo=modrinth)](https://modrinth.com/project/border-quest)
 [![Modrinth Game Versions](https://img.shields.io/modrinth/game-versions/border-quest?label=game%20versions&logo=modrinth)](https://modrinth.com/project/border-quest)
 
-A **server-side Fabric mod** for Minecraft 1.21 that turns your world border into a cooperative progression challenge.
+A **server-side Fabric mod** for Minecraft 26.1.2 that turns your world border into a cooperative progression challenge.
 Players collect resources, donate them to **altars**, and unlock an ever-growing world — stage by stage.
 
 ---
@@ -31,11 +31,10 @@ Players collect resources, donate them to **altars**, and unlock an ever-growing
 ## Requirements
 
 | Dependency | Version | Required? |
-|---|---|---|
-| Minecraft | 1.21.x | ✅ |
-| Fabric Loader | ≥ 0.14.21 | ✅ |
+|---|---|---|---|
+| Minecraft | 26.1.2 | ✅ |
+| Fabric Loader | ≥ 0.19 | ✅ |
 | Fabric API | any | ✅ |
-| BlueMap | any | Optional |
 | Dynmap (Fabric) | any | Optional |
 | JourneyMap | any | Optional (singleplayer / LAN) |
 | Xaero's Minimap | any | Optional (singleplayer / LAN) |
@@ -47,7 +46,7 @@ Players collect resources, donate them to **altars**, and unlock an ever-growing
 
 ## Installation
 
-1. Drop `border-quest-mod-x.x.x.jar` into your server's `mods/` folder alongside Fabric API.
+1. Drop `border-quest-<version>.jar` into your server's `mods/` folder alongside Fabric API.
 2. Start the server once — `config/borderquest.json` is generated automatically.
 3. Edit the config to suit your server, then run `/bq reload`.
 
@@ -214,14 +213,18 @@ To remove an altar: look at it and run `/bq removealtar`.
 
 ## Map integrations
 
-### BlueMap
+### BlueMap (temporarily unavailable)
 
-Requires **BlueMap** installed on the server.
-The mod automatically renders:
-- A **green rectangle** showing the current border extent on the overworld map.
-- A **POI marker** for each altar (with its display name if set).
+BlueMap n'a pas encore publié de version compatible Minecraft 26.1.
+Réactiver dès qu'une version sera disponible :
 
-Markers rebuild automatically when BlueMap reloads.
+1. Décommenter la dépendance `compileOnly "de.bluecolored:bluemap-api:<version>"` dans `build.gradle`
+2. Décommenter le contenu de `BlueMapHook.java`
+3. Recompiler
+
+Le mod affichera automatiquement :
+- Un **rectangle vert** sur la carte du monde normal indiquant la zone actuelle.
+- Un **marqueur POI** pour chaque autel (avec son nom).
 
 ### Dynmap
 
@@ -320,7 +323,7 @@ gradlew build
 # Output: build/libs/border-quest-<mcversion>-<version>.jar
 ```
 
-**Requirements:** Java 21, internet access (to download Fabric Loom and BlueMap API).
+**Requirements:** Java 25, internet access (to download Fabric Loom and dependencies).
 
 Override the mod version for testing:
 ```bash
@@ -345,8 +348,7 @@ Dependencies at a glance:
 
 | Artifact | Scope | Purpose |
 |---|---|---|
-| `net.fabricmc.fabric-api` | `modImplementation` | Fabric API |
-| `de.bluecolored:bluemap-api:2.7.7` | `compileOnly` | BlueMap markers at compile time |
+| `net.fabricmc.fabric-api` | `implementation` | Fabric API |
 | Dynmap, JourneyMap, Xaero's | none | Integrated via reflection — no compile dependency |
 
 ---

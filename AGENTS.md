@@ -1,6 +1,6 @@
 # Border Quest — Agent Instructions
 
-Server-side Fabric mod for Minecraft 1.21.11. Single-module Gradle project.
+Server-side Fabric mod for Minecraft 26.1. Single-module Gradle project.
 
 ## Build
 
@@ -8,7 +8,7 @@ Only `gradlew.bat` exists (no Unix `gradlew`). On macOS/Linux use:
 ```
 java -jar gradle/wrapper/gradle-wrapper.jar build
 ```
-Requires Java 21.
+Requires Java 25.
 
 Output: `build/libs/border-quest-<mcversion>-<version>.jar` (version from `gradle.properties`, or override with `-Pmod_version=X.Y.Z`).
 
@@ -26,7 +26,7 @@ Branches:
 ## Source layout
 
 ```
-src/main/java/net/borderquest/        # all mod code (11 files + 5 map hooks + 6 mixins)
+src/main/java/net/borderquest/        # all mod code (9 core + 5 map + 3 mixin files = 17)
   BorderQuest.java                    # ModInitializer entrypoint
   BorderQuestManager.java             # core game loop, border, progression
   BorderQuestCommand.java             # /bq command tree
@@ -36,7 +36,7 @@ src/main/java/net/borderquest/        # all mod code (11 files + 5 map hooks + 6
   BiomeResourceResolver.java          # biome → item resolution
   SidebarDisplay.java                 # tab-list HUD
   DiscordWebhook.java                 # async HTTP post
-  mixin/SpawnProtectionMixin.java     # @Overwrite disables vanilla spawn protection
+  mixin/SpawnProtectionMixin.java     # @Overwrite disables vanilla spawn protection (26.1.2)
   mixin/PlayerDimensionMixin.java     # gates Nether/End per stage
   mixin/RecipeLockMixin.java          # 4 inner mixins: crafting table, player 2x2, furnace, recipe book
   map/                                # BlueMap/Dynmap/JourneyMap/Xaero (reflection)
@@ -48,13 +48,13 @@ server/                               # actual server runtime
 ## Key conventions
 
 - **Server-side only** (`"environment": "server"`). No client-side code.
-- BlueMap is the only compile-time map dependency (`compileOnly`). All other map integrations use reflection.
+- BlueMap est désactivé temporairement (pas de version compatible 26.1 disponible). Les autres intégrations cartographiques utilisent la réflexion.
 - `@Overwrite` on `SpawnProtectionMixin` is intentional — disables spawn protection entirely so all players can break blocks in the zone.
 - Commands use Fabric API's `CommandRegistrationCallback`. All start with `/bq`.
 - Gson serialization for both config and saved state. Config auto-generated on first server start.
-- Recipe locking via `unlockRecipes` per stage. Uses 4 inner mixin classes in `RecipeLockMixin.java` targeting `CraftingScreenHandler`, `PlayerScreenHandler`, `AbstractFurnaceBlockEntity`, and `ServerPlayNetworkHandler`. The `ServerRecipeManager` API (not `RecipeManager`) is used for recipe lookup: `getFirstMatch()` and `get(NetworkRecipeId)`.
+- Recipe locking via `unlockRecipes` per stage. Uses 4 inner mixin classes in `RecipeLockMixin.java` targeting `CraftingMenu`, `InventoryMenu`, `AbstractFurnaceBlockEntity`, and `ServerGamePacketListenerImpl` (Mojang mappings 26.1.2).
 - **Update `CHANGELOG.md`** with every user-facing change. Follow the existing format and add a new `## [Unreleased]` section if none exists.
 
 ## gradle.properties
 
-Minecraft 1.21.11, Yarn 1.21.11+build.4, Fabric Loom 1.13.6, Fabric API 0.141.3, Loader 0.18.4. Java 21 source/target.
+Minecraft 26.1.2, Fabric Loom 1.16.1, Fabric API 0.148.0+26.1.2, Loader 0.19.2. Java 25 source/target.

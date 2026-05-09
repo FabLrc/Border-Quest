@@ -34,11 +34,6 @@ public class StageDefinition {
         return borderRadius * 2.0;
     }
 
-    public boolean hasRequirements() {
-        return (requirements != null && !requirements.isEmpty())
-            || (categoryRequirements != null && !categoryRequirements.isEmpty());
-    }
-
     /**
      * Paire item ID -> quantité requise.
      */

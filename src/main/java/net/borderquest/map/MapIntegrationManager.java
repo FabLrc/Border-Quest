@@ -3,7 +3,7 @@ package net.borderquest.map;
 import net.borderquest.BorderQuest;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 
 /**
  * Façade vers les intégrations de cartes dynamiques (BlueMap, Dynmap, JourneyMap, Xaero).

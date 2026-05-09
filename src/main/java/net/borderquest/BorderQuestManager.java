@@ -3,37 +3,35 @@ package net.borderquest;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
 import net.borderquest.map.MapIntegrationManager;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.FireworkExplosionComponent;
-import net.minecraft.component.type.FireworksComponent;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.projectile.FireworkRocketEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
-import net.minecraft.network.packet.s2c.play.TitleFadeS2CPacket;
-import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKey;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket;
+import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
+import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.WorldSavePath;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.Heightmap;
-import net.minecraft.world.World;
-import net.minecraft.world.WorldProperties;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.border.WorldBorder;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.projectile.FireworkRocketEntity;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.FireworkExplosion;
+import net.minecraft.world.item.component.Fireworks;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.border.WorldBorder;
+import net.minecraft.world.level.storage.LevelResource;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -56,7 +54,7 @@ public class BorderQuestManager {
     private final Path savePath;
 
     private List<ItemReq> resolvedRequirements = new ArrayList<>();
-    private Set<RegistryKey<Biome>> detectedBiomes = new HashSet<>();
+    private Set<ResourceKey<Biome>> detectedBiomes = new HashSet<>();
     private SidebarDisplay sidebarDisplay;
 
     /** Tous les item IDs qui apparaissent dans au moins un unlockRecipes (tous stades confondus). */
@@ -86,7 +84,7 @@ public class BorderQuestManager {
 
     public BorderQuestManager(MinecraftServer server) {
         this.server = server;
-        this.savePath = server.getSavePath(WorldSavePath.ROOT).resolve("borderquest_state.json");
+        this.savePath = server.getWorldPath(LevelResource.ROOT).resolve("borderquest_state.json");
         this.state = new QuestState();
         this.sidebarDisplay = new SidebarDisplay(server);
     }
@@ -140,7 +138,7 @@ public class BorderQuestManager {
         if (stage.requirements != null) resolvedRequirements.addAll(stage.requirements);
 
         if (stage.categoryRequirements != null && !stage.categoryRequirements.isEmpty()) {
-            detectedBiomes = BiomeResourceResolver.scanBiomes(server.getOverworld(), stage.borderRadius);
+            detectedBiomes = BiomeResourceResolver.scanBiomes(server.overworld(), stage.borderRadius);
             for (CategoryReq catReq : stage.categoryRequirements) {
                 ItemReq resolved = BiomeResourceResolver.resolveCategory(
                     catReq.category(), catReq.count(), detectedBiomes);
@@ -186,8 +184,7 @@ public class BorderQuestManager {
     /** Lit le spawn monde pour centrer la barrière, avec fallback (0, 0). */
     private void refreshBorderCenter() {
         try {
-            WorldProperties.SpawnPoint sp = server.getOverworld().getSpawnPoint();
-            BlockPos pos = sp.getPos();
+            BlockPos pos = server.overworld().getRespawnData().pos();
             borderCenterX = pos.getX() + 0.5;
             borderCenterZ = pos.getZ() + 0.5;
             BorderQuest.LOGGER.info("[BorderQuest] Centre barriere -> ({}, {})", (int) borderCenterX, (int) borderCenterZ);
@@ -211,13 +208,13 @@ public class BorderQuestManager {
         double diameter = stage.getDiameter();
         BorderQuestConfig cfg = BorderQuestConfig.get();
 
-        WorldBorder owBorder = server.getOverworld().getWorldBorder();
+        WorldBorder owBorder = server.overworld().getWorldBorder();
         owBorder.setCenter(borderCenterX, borderCenterZ);
         owBorder.setSize(diameter);
         owBorder.setDamagePerBlock(cfg.borderDamagePerBlock);
         owBorder.setWarningBlocks(cfg.borderWarningBlocks);
 
-        var nether = server.getWorld(World.NETHER);
+        var nether = server.getLevel(Level.NETHER);
         if (nether != null) {
             WorldBorder netherBorder = nether.getWorldBorder();
             netherBorder.setCenter(borderCenterX / cfg.netherScale, borderCenterZ / cfg.netherScale);
@@ -236,12 +233,12 @@ public class BorderQuestManager {
     private void animateBorderExpansion(double newDiameter) {
         long now = System.currentTimeMillis();
         double scale = BorderQuestConfig.get().netherScale;
-        server.getOverworld().getWorldBorder()
-            .interpolateSize(server.getOverworld().getWorldBorder().getSize(), newDiameter, 10000L, now);
-        var nether = server.getWorld(World.NETHER);
+        server.overworld().getWorldBorder()
+            .lerpSizeBetween(server.overworld().getWorldBorder().getSize(), newDiameter, 10000L, now);
+        var nether = server.getLevel(Level.NETHER);
         if (nether != null) {
             nether.getWorldBorder()
-                .interpolateSize(nether.getWorldBorder().getSize(), newDiameter / scale, 10000L, now);
+                .lerpSizeBetween(nether.getWorldBorder().getSize(), newDiameter / scale, 10000L, now);
         }
     }
 
@@ -261,7 +258,7 @@ public class BorderQuestManager {
         sidebarRefreshCounter++;
         if (sidebarRefreshCounter >= 200) {
             sidebarRefreshCounter = 0;
-            if (!server.getPlayerManager().getPlayerList().isEmpty()) {
+            if (!server.getPlayerList().getPlayers().isEmpty()) {
                 updateSidebar();
             }
         }
@@ -285,7 +282,7 @@ public class BorderQuestManager {
     }
 
     private void spawnAltarParticles() {
-        ServerWorld world = server.getOverworld();
+        ServerLevel world = server.overworld();
         for (String posKey : state.altarPositions) {
             String[] parts = posKey.split(",");
             if (parts.length != 3) continue;
@@ -293,13 +290,13 @@ public class BorderQuestManager {
                 double x = Double.parseDouble(parts[0]) + 0.5;
                 double y = Double.parseDouble(parts[1]) + 1.2;
                 double z = Double.parseDouble(parts[2]) + 0.5;
-                world.spawnParticles(ParticleTypes.END_ROD, x, y, z, 3, 0.3, 0.3, 0.3, 0.04);
+                world.sendParticles(ParticleTypes.END_ROD, x, y, z, 3, 0.3, 0.3, 0.3, 0.04);
             } catch (NumberFormatException ignored) {}
         }
     }
 
     private void spawnFireworkBurst() {
-        ServerWorld world = server.getOverworld();
+        ServerLevel world = server.overworld();
         double radius = Math.min(getCurrentStage().borderRadius * 0.8, 20);
 
         for (int i = 0; i < 4; i++) {
@@ -307,18 +304,18 @@ public class BorderQuestManager {
             double dist  = RANDOM.nextDouble() * radius;
             double fx = borderCenterX + Math.cos(angle) * dist;
             double fz = borderCenterZ + Math.sin(angle) * dist;
-            int topY = world.getTopY(Heightmap.Type.MOTION_BLOCKING, (int) fx, (int) fz);
+            int topY = world.getHeight(Heightmap.Types.MOTION_BLOCKING, (int) fx, (int) fz);
             double fy = topY + 1 + RANDOM.nextDouble() * 3;
 
             FireworkRocketEntity rocket = new FireworkRocketEntity(
                 world, fx, fy, fz, buildFirework());
-            world.spawnEntity(rocket);
+            world.addFreshEntity(rocket);
         }
     }
 
     private ItemStack buildFirework() {
-        FireworkExplosionComponent.Type[] shapes = FireworkExplosionComponent.Type.values();
-        FireworkExplosionComponent.Type shape = shapes[RANDOM.nextInt(shapes.length)];
+        FireworkExplosion.Shape[] shapes = FireworkExplosion.Shape.values();
+        FireworkExplosion.Shape shape = shapes[RANDOM.nextInt(shapes.length)];
 
         // Couleurs vives aléatoires
         int[] palette = {0xFF0000, 0x00FF00, 0x0000FF, 0xFFFF00, 0xFF00FF, 0x00FFFF, 0xFF8800, 0xFFFFFF};
@@ -326,7 +323,7 @@ public class BorderQuestManager {
         int color2 = palette[RANDOM.nextInt(palette.length)];
         int fade   = palette[RANDOM.nextInt(palette.length)];
 
-        FireworkExplosionComponent explosion = new FireworkExplosionComponent(
+        FireworkExplosion explosion = new FireworkExplosion(
             shape,
             new IntArrayList(new int[]{color1, color2}),
             new IntArrayList(new int[]{fade}),
@@ -335,8 +332,8 @@ public class BorderQuestManager {
         );
 
         ItemStack stack = new ItemStack(Items.FIREWORK_ROCKET);
-        stack.set(DataComponentTypes.FIREWORKS,
-            new FireworksComponent(1, List.of(explosion)));
+        stack.set(DataComponents.FIREWORKS,
+            new Fireworks(1, List.of(explosion)));
         return stack;
     }
 
@@ -346,25 +343,25 @@ public class BorderQuestManager {
 
     private void celebrateStageComplete(boolean isFinal, StageDefinition newStage) {
         // Titre plein écran
-        Text title    = isFinal
-            ? Text.literal("★ LIBERTE ! ★").formatted(Formatting.GOLD, Formatting.BOLD)
-            : Text.literal("✦ ZONE AGRANDIE ✦").formatted(Formatting.AQUA, Formatting.BOLD);
-        Text subtitle = isFinal
-            ? Text.literal("Le monde vous appartient !").formatted(Formatting.YELLOW)
-            : Text.literal("Rayon : " + (int) newStage.borderRadius + " blocs | " + newStage.title)
-                  .formatted(Formatting.WHITE);
+        Component title    = isFinal
+            ? Component.literal("★ LIBERTE ! ★").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD)
+            : Component.literal("✦ ZONE AGRANDIE ✦").withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD);
+        Component subtitle = isFinal
+            ? Component.literal("Le monde vous appartient !").withStyle(ChatFormatting.YELLOW)
+            : Component.literal("Rayon : " + (int) newStage.borderRadius + " blocs | " + newStage.title)
+                  .withStyle(ChatFormatting.WHITE);
 
-        server.getPlayerManager().sendToAll(new TitleFadeS2CPacket(10, 80, 20));
-        server.getPlayerManager().sendToAll(new SubtitleS2CPacket(subtitle));
-        server.getPlayerManager().sendToAll(new TitleS2CPacket(title));
+        server.getPlayerList().broadcastAll(new ClientboundSetTitlesAnimationPacket(10, 80, 20));
+        server.getPlayerList().broadcastAll(new ClientboundSetSubtitleTextPacket(subtitle));
+        server.getPlayerList().broadcastAll(new ClientboundSetTitleTextPacket(title));
 
         // Son pour chaque joueur (à sa position)
-        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-            server.getOverworld().playSound(
+        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+            server.overworld().playSound(
                 null,
                 player.getX(), player.getY(), player.getZ(),
-                isFinal ? SoundEvents.UI_TOAST_CHALLENGE_COMPLETE : SoundEvents.ENTITY_PLAYER_LEVELUP,
-                SoundCategory.MASTER,
+                isFinal ? SoundEvents.UI_TOAST_CHALLENGE_COMPLETE : SoundEvents.PLAYER_LEVELUP,
+                SoundSource.MASTER,
                 2.0f, 1.0f
             );
         }
@@ -389,23 +386,24 @@ public class BorderQuestManager {
         return true;
     }
 
-    public Text submitItems(ServerPlayerEntity player) {
+    public Component submitItems(ServerPlayer player) {
         if (isLastStage())
-            return Text.literal("La barriere est deja entierement levee !").formatted(Formatting.GOLD);
+            return Component.literal("La barriere est deja entierement levee !").withStyle(ChatFormatting.GOLD);
 
         if (resolvedRequirements.isEmpty())
-            return Text.literal("Aucune ressource requise pour ce stade.").formatted(Formatting.YELLOW);
+            return Component.literal("Aucune ressource requise pour ce stade.").withStyle(ChatFormatting.YELLOW);
 
         boolean submittedAnything = false;
         StringBuilder log = new StringBuilder();
-        String playerUuid = player.getUuidAsString();
+        String playerUuid = player.getStringUUID();
         String playerName = player.getName().getString();
         int totalDonated = 0;
 
         for (ItemReq req : resolvedRequirements) {
             int remaining = req.count() - state.submittedItems.getOrDefault(req.itemId(), 0);
             if (remaining <= 0) continue;
-            Item targetItem = Registries.ITEM.get(Identifier.of(req.itemId()));
+            Item targetItem = BuiltInRegistries.ITEM.get(Identifier.parse(req.itemId()))
+                .map(net.minecraft.core.Holder.Reference::value).orElse(Items.AIR);
             if (targetItem == Items.AIR) continue;
             int toTake = Math.min(remaining, countInInventory(player, targetItem));
             if (toTake <= 0) continue;
@@ -419,7 +417,7 @@ public class BorderQuestManager {
         }
 
         if (!submittedAnything)
-            return Text.literal("Vous n'avez aucune ressource requise.").formatted(Formatting.RED);
+            return Component.literal("Vous n'avez aucune ressource requise.").withStyle(ChatFormatting.RED);
 
         state.playerDonations.merge(playerUuid, totalDonated, Integer::sum);
         state.playerNames.put(playerUuid, playerName);
@@ -427,8 +425,8 @@ public class BorderQuestManager {
         // Annonce publique si le don dépasse le seuil configuré
         BorderQuestConfig cfgAnnounce = BorderQuestConfig.get();
         if (cfgAnnounce.donationAnnouncementsEnabled && totalDonated >= cfgAnnounce.donationAnnounceMinItems) {
-            server.getPlayerManager().broadcast(
-                Text.literal("\u00a7b[BorderQuest] \u00a7f" + playerName
+            server.getPlayerList().broadcastSystemMessage(
+                Component.literal("\u00a7b[BorderQuest] \u00a7f" + playerName
                     + " \u00a77a soumis \u00a7f" + totalDonated + " \u00a77objet(s) !"),
                 false
             );
@@ -439,10 +437,10 @@ public class BorderQuestManager {
 
         if (isStageComplete()) {
             advanceStage();
-            return Text.literal("Objectif atteint ! La barriere s'agrandit !\n" + log.toString().trim())
-                .formatted(Formatting.GREEN);
+            return Component.literal("Objectif atteint ! La barriere s'agrandit !\n" + log.toString().trim())
+                .withStyle(ChatFormatting.GREEN);
         }
-        return Text.literal("Ressources soumises :\n" + log.toString().trim()).formatted(Formatting.GREEN);
+        return Component.literal("Ressources soumises :\n" + log.toString().trim()).withStyle(ChatFormatting.GREEN);
     }
 
     private void advanceStage() {
@@ -457,9 +455,9 @@ public class BorderQuestManager {
         boolean isFinal = isLastStage();
         double scale = BorderQuestConfig.get().netherScale;
 
-        server.getOverworld().getWorldBorder().setCenter(borderCenterX, borderCenterZ);
+        server.overworld().getWorldBorder().setCenter(borderCenterX, borderCenterZ);
         animateBorderExpansion(newStage.getDiameter());
-        var nether = server.getWorld(World.NETHER);
+        var nether = server.getLevel(Level.NETHER);
         if (nether != null) nether.getWorldBorder().setCenter(borderCenterX / scale, borderCenterZ / scale);
 
         resolveRequirements();
@@ -469,12 +467,12 @@ public class BorderQuestManager {
         if (mapManager != null) mapManager.updateBorder(borderCenterX, borderCenterZ, newStage.borderRadius);
 
         // Annonce chat
-        Text announcement = isFinal
-            ? Text.literal("=== LIBERTE ! La barriere est tombee ! ===").formatted(Formatting.GOLD)
-            : Text.literal("=== Stade " + state.currentStage + " valide ! Rayon -> " +
+        Component announcement = isFinal
+            ? Component.literal("=== LIBERTE ! La barriere est tombee ! ===").withStyle(ChatFormatting.GOLD)
+            : Component.literal("=== Stade " + state.currentStage + " valide ! Rayon -> " +
                 (int) newStage.borderRadius + " blocs | " + newStage.title + " ===")
-              .formatted(Formatting.AQUA);
-        server.getPlayerManager().broadcast(announcement, false);
+              .withStyle(ChatFormatting.AQUA);
+        server.getPlayerList().broadcastSystemMessage(announcement, false);
 
         // Récompenses pour tous les joueurs connectés
         if (rewards != null && !rewards.isEmpty()) {
@@ -493,37 +491,38 @@ public class BorderQuestManager {
     }
 
     private void distributeRewards(List<StageDefinition.Reward> rewards) {
-        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             for (StageDefinition.Reward r : rewards) {
                 try {
                     switch (r.type) {
                         case "item" -> {
                             if (!r.itemId.isBlank()) {
-                                Item item = Registries.ITEM.get(Identifier.of(r.itemId));
+                                Item item = BuiltInRegistries.ITEM.get(Identifier.parse(r.itemId))
+                                    .map(net.minecraft.core.Holder.Reference::value).orElse(Items.AIR);
                                 if (item != Items.AIR) {
                                     ItemStack stack = new ItemStack(item, r.count);
-                                    if (!player.getInventory().insertStack(stack) && !stack.isEmpty()) {
-                                        player.dropItem(stack, false, false);
+                                    if (!player.getInventory().add(stack) && !stack.isEmpty()) {
+                                        player.drop(stack, false, false);
                                     }
                                 }
                             }
                         }
                         case "effect" -> {
                             if (!r.effectId.isBlank()) {
-                                Registries.STATUS_EFFECT.getEntry(Identifier.of(r.effectId))
-                                    .ifPresent(e -> player.addStatusEffect(
-                                        new StatusEffectInstance(e, r.duration, r.amplifier)));
+                                BuiltInRegistries.MOB_EFFECT.get(Identifier.parse(r.effectId))
+                                    .ifPresent(e -> player.addEffect(
+                                        new MobEffectInstance(e, r.duration, r.amplifier)));
                             }
                         }
                         case "xp" -> {
-                            if (r.amount > 0) player.addExperience(r.amount);
+                            if (r.amount > 0) player.giveExperiencePoints(r.amount);
                         }
                     }
                 } catch (Exception e) {
                     BorderQuest.LOGGER.warn("[BorderQuest] Erreur distribution recompense: {}", e.getMessage());
                 }
             }
-            player.sendMessage(Text.literal("\u00a76[BorderQuest] \u00a7aRecompenses du stade distribues !"), false);
+            player.sendSystemMessage(Component.literal("\u00a76[BorderQuest] \u00a7aRecompenses du stade distribues !"));
         }
     }
 
@@ -531,9 +530,9 @@ public class BorderQuestManager {
     // Affichage /bq status
     // -----------------------------------------------------------------------
 
-    public Text getStatusText() {
+    public Component getStatusText() {
         if (isLastStage())
-            return Text.literal("\u00a76=== Border Quest ===\n\u00a7aLA BARRIERE EST TOMBEE !");
+            return Component.literal("\u00a76=== Border Quest ===\n\u00a7aLA BARRIERE EST TOMBEE !");
 
         StageDefinition stage = getCurrentStage();
         StringBuilder sb = new StringBuilder();
@@ -549,7 +548,7 @@ public class BorderQuestManager {
               .append(name).append(": ").append(submitted).append("/").append(req.count()).append("\n");
         }
         sb.append("\u00a77/bq submit pour deposer.");
-        return Text.literal(sb.toString());
+        return Component.literal(sb.toString());
     }
 
     // -----------------------------------------------------------------------
@@ -624,15 +623,15 @@ public class BorderQuestManager {
      * Seul l'objet tenu en main principale est pris, uniquement s'il est requis.
      * Retourne un message affiché dans l'action bar.
      */
-    public Text donateFromHand(ServerPlayerEntity player) {
+    public Component donateFromHand(ServerPlayer player) {
         if (isLastStage())
-            return Text.literal("La barriere est deja levee !").formatted(Formatting.GOLD);
+            return Component.literal("La barriere est deja levee !").withStyle(ChatFormatting.GOLD);
 
-        ItemStack held = player.getMainHandStack();
+        ItemStack held = player.getMainHandItem();
         if (held.isEmpty())
-            return Text.literal("Tenez un objet requis en main.").formatted(Formatting.RED);
+            return Component.literal("Tenez un objet requis en main.").withStyle(ChatFormatting.RED);
 
-        String itemId = Registries.ITEM.getId(held.getItem()).toString();
+        String itemId = BuiltInRegistries.ITEM.getKey(held.getItem()).toString();
 
         // Chercher si cet item est requis
         ItemReq matching = null;
@@ -640,27 +639,27 @@ public class BorderQuestManager {
             if (req.itemId().equals(itemId)) { matching = req; break; }
         }
         if (matching == null)
-            return Text.literal("Cet objet n'est pas requis ici.").formatted(Formatting.RED);
+            return Component.literal("Cet objet n'est pas requis ici.").withStyle(ChatFormatting.RED);
 
         int alreadySubmitted = state.submittedItems.getOrDefault(itemId, 0);
         int remaining = matching.count() - alreadySubmitted;
         if (remaining <= 0)
-            return Text.literal("Deja complet pour " + itemId.replace("minecraft:", "") + " !").formatted(Formatting.GREEN);
+            return Component.literal("Deja complet pour " + itemId.replace("minecraft:", "") + " !").withStyle(ChatFormatting.GREEN);
 
         int toTake = Math.min(remaining, held.getCount());
-        held.decrement(toTake);
+        held.shrink(toTake);
         state.submittedItems.merge(itemId, toTake, Integer::sum);
 
-        state.playerDonations.merge(player.getUuidAsString(), toTake, Integer::sum);
-        state.playerNames.put(player.getUuidAsString(), player.getName().getString());
+        state.playerDonations.merge(player.getStringUUID(), toTake, Integer::sum);
+        state.playerNames.put(player.getStringUUID(), player.getName().getString());
 
         String name = itemId.replace("minecraft:", "");
 
         // Annonce publique si le don dépasse le seuil configuré
         BorderQuestConfig cfgAlt = BorderQuestConfig.get();
         if (cfgAlt.donationAnnouncementsEnabled && toTake >= cfgAlt.donationAnnounceMinItems) {
-            server.getPlayerManager().broadcast(
-                Text.literal("\u00a7b[BorderQuest] \u00a7f" + player.getName().getString()
+            server.getPlayerList().broadcastSystemMessage(
+                Component.literal("\u00a7b[BorderQuest] \u00a7f" + player.getName().getString()
                     + " \u00a77a depose \u00a7f" + toTake + " " + name + " \u00a77a l'autel !"),
                 false
             );
@@ -673,33 +672,33 @@ public class BorderQuestManager {
 
         if (isStageComplete()) {
             advanceStage();
-            return Text.literal("Objectif atteint ! +" + toTake + " " + name + " (" + newTotal + "/" + matching.count() + ")")
-                .formatted(Formatting.GREEN);
+            return Component.literal("Objectif atteint ! +" + toTake + " " + name + " (" + newTotal + "/" + matching.count() + ")")
+                .withStyle(ChatFormatting.GREEN);
         }
-        return Text.literal("+" + toTake + " " + name + " | " + newTotal + "/" + matching.count())
-            .formatted(Formatting.GREEN);
+        return Component.literal("+" + toTake + " " + name + " | " + newTotal + "/" + matching.count())
+            .withStyle(ChatFormatting.GREEN);
     }
 
     // -----------------------------------------------------------------------
     // Utilitaires inventaire
     // -----------------------------------------------------------------------
 
-    private int countInInventory(ServerPlayerEntity player, Item item) {
+    private int countInInventory(ServerPlayer player, Item item) {
         int count = 0;
-        for (int i = 0; i < player.getInventory().size(); i++) {
-            ItemStack stack = player.getInventory().getStack(i);
+        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+            ItemStack stack = player.getInventory().getItem(i);
             if (stack.getItem() == item) count += stack.getCount();
         }
         return count;
     }
 
-    private void removeFromInventory(ServerPlayerEntity player, Item item, int amount) {
+    private void removeFromInventory(ServerPlayer player, Item item, int amount) {
         int toRemove = amount;
-        for (int i = 0; i < player.getInventory().size() && toRemove > 0; i++) {
-            ItemStack stack = player.getInventory().getStack(i);
+        for (int i = 0; i < player.getInventory().getContainerSize() && toRemove > 0; i++) {
+            ItemStack stack = player.getInventory().getItem(i);
             if (stack.getItem() == item) {
                 int take = Math.min(stack.getCount(), toRemove);
-                stack.decrement(take);
+                stack.shrink(take);
                 toRemove -= take;
             }
         }

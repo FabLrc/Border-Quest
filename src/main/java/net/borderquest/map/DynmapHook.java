@@ -1,8 +1,8 @@
 package net.borderquest.map;
 
 import net.borderquest.BorderQuest;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.math.BlockPos;
 
 import java.lang.reflect.Method;
 
@@ -13,15 +13,11 @@ import java.lang.reflect.Method;
  */
 public class DynmapHook {
 
-    private static final String MARKER_SET_ID    = "borderquest";
+    private static final String WORLD_NAME = "world";
+    private static final String MARKER_SET_ID = "borderquest";
     private static final String MARKER_SET_LABEL = "Border Quest";
-    private static final String WORLD_NAME       = "world";
-
-    @SuppressWarnings("unused")
-    private final MinecraftServer server;
 
     public DynmapHook(MinecraftServer server) {
-        this.server = server;
     }
 
     public void register() {
