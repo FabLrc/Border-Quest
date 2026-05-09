@@ -54,7 +54,7 @@ jobs:
           body_path: release_body.md
           files: build/libs/*.jar
           draft: false
-          prerelease: true
+          prerelease: false
 
       - name: Publish to Modrinth
         shell: pwsh
