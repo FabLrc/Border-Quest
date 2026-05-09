@@ -41,12 +41,14 @@ public class BorderQuest implements ModInitializer {
             manager.applyBorder();
             manager.initSidebar();
             manager.updateSidebar();
+            DashboardServer.start(server, manager);
             LOGGER.info("[BorderQuest] Mod charge — stade {}/{}",
                 manager.getState().currentStage + 1,
                 BorderQuestManager.STAGES().size() - 1);
         });
 
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+            DashboardServer.stop();
             if (manager != null) {
                 manager.save();
                 LOGGER.info("[BorderQuest] Etat sauvegarde.");

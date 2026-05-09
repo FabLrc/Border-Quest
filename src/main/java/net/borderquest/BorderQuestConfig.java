@@ -7,6 +7,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -104,6 +105,28 @@ public class BorderQuestConfig {
     public String discordAvatarUrl = "";
 
     // -----------------------------------------------------------------------
+    // Dashboard Web
+    // -----------------------------------------------------------------------
+
+    public DashboardConfig dashboard = new DashboardConfig();
+
+    public static class DashboardConfig {
+        public boolean enabled = true;
+        public int port = 8123;
+        public String bindAddress = "127.0.0.1";
+        public String password = null;
+
+        public static String generatePassword() {
+            String chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+            SecureRandom random = new SecureRandom();
+            StringBuilder sb = new StringBuilder(12);
+            for (int i = 0; i < 12; i++)
+                sb.append(chars.charAt(random.nextInt(chars.length())));
+            return sb.toString();
+        }
+    }
+
+    // -----------------------------------------------------------------------
     // Stades de progression
     // -----------------------------------------------------------------------
 
@@ -137,7 +160,8 @@ public class BorderQuestConfig {
                 String json = Files.readString(path);
                 instance = GSON.fromJson(json, BorderQuestConfig.class);
                 if (instance == null) instance = new BorderQuestConfig();
-                instance.validate();
+                boolean needsSave = instance.validate();
+                if (needsSave) save();
                 BorderQuest.LOGGER.info("[BorderQuest] Config chargee ({} stades)", instance.stages.size());
             } catch (IOException e) {
                 BorderQuest.LOGGER.error("[BorderQuest] Impossible de charger la config, valeurs par defaut utilisees", e);
@@ -147,6 +171,16 @@ public class BorderQuestConfig {
             instance = new BorderQuestConfig();
             save();
             BorderQuest.LOGGER.info("[BorderQuest] Config par defaut creee : {}", path);
+        }
+    }
+
+    public static boolean hasField(String fieldName) {
+        try {
+            Path path = configPath();
+            if (!Files.exists(path)) return false;
+            return Files.readString(path).contains("\"" + fieldName + "\"");
+        } catch (IOException e) {
+            return false;
         }
     }
 
@@ -160,30 +194,51 @@ public class BorderQuestConfig {
         }
     }
 
-    /** Applique les valeurs par défaut aux champs manquants ou invalides. */
-    private void validate() {
-        if (language == null || language.isBlank()) language = "en_us";
-        if (stages == null || stages.isEmpty()) stages = defaultStages();
-        if (celebrationDurationTicks <= 0) celebrationDurationTicks = 200;
-        if (borderDamagePerBlock < 0) borderDamagePerBlock = 0.2;
-        if (borderWarningBlocks < 0) borderWarningBlocks = 5;
-        if (netherScale <= 0) netherScale = 8.0;
-        if (altarParticlePeriodTicks <= 0) altarParticlePeriodTicks = 20;
-        if (donationAnnounceMinItems <= 0) donationAnnounceMinItems = 1;
-        if (worldLocks == null) worldLocks = defaultWorldLocks();
-        if (discordWebhookUrl == null) discordWebhookUrl = "";
-        if (discordUsername == null || discordUsername.isBlank()) discordUsername = "Border Quest";
-        if (discordAvatarUrl == null) discordAvatarUrl = "";
+    /** Applique les valeurs par défaut aux champs manquants ou invalides. Retourne true si un champ a été modifié. */
+    private boolean validate() {
+        boolean modified = false;
+        if (language == null || language.isBlank()) { language = "en_us"; modified = true; }
+        if (dashboard == null) { dashboard = new DashboardConfig(); modified = true; }
+        if (dashboard.password == null || dashboard.password.isBlank()) { dashboard.password = DashboardConfig.generatePassword(); modified = true; }
+        if (dashboard.port <= 0 || dashboard.port > 65535) { dashboard.port = 8123; modified = true; }
+        if (dashboard.bindAddress == null || dashboard.bindAddress.isBlank()) { dashboard.bindAddress = "127.0.0.1"; modified = true; }
+        if (stages == null || stages.isEmpty()) { stages = defaultStages(); modified = true; }
+        if (celebrationDurationTicks <= 0) { celebrationDurationTicks = 200; modified = true; }
+        if (borderDamagePerBlock < 0) { borderDamagePerBlock = 0.2; modified = true; }
+        if (borderWarningBlocks < 0) { borderWarningBlocks = 5; modified = true; }
+        if (netherScale <= 0) { netherScale = 8.0; modified = true; }
+        if (altarParticlePeriodTicks <= 0) { altarParticlePeriodTicks = 20; modified = true; }
+        if (donationAnnounceMinItems <= 0) { donationAnnounceMinItems = 1; modified = true; }
+        if (worldLocks == null) { worldLocks = defaultWorldLocks(); modified = true; }
+        if (discordWebhookUrl == null) { discordWebhookUrl = ""; modified = true; }
+        if (discordUsername == null || discordUsername.isBlank()) { discordUsername = "Border Quest"; modified = true; }
+        if (discordAvatarUrl == null) { discordAvatarUrl = ""; modified = true; }
         for (StageDefinition s : stages) {
-            if (s.requirements == null) s.requirements = List.of();
-            if (s.categoryRequirements == null) s.categoryRequirements = List.of();
-            if (s.rewards == null) s.rewards = new ArrayList<>();
-            if (s.unlockRecipes == null) s.unlockRecipes = new ArrayList<>();
+            if (s.requirements == null) { s.requirements = List.of(); modified = true; }
+            if (s.categoryRequirements == null) { s.categoryRequirements = List.of(); modified = true; }
+            if (s.rewards == null) { s.rewards = new ArrayList<>(); modified = true; }
+            if (s.unlockRecipes == null) { s.unlockRecipes = new ArrayList<>(); modified = true; }
         }
+        return modified;
     }
 
-    private static Path configPath() {
+    public static Path configPath() {
         return FabricLoader.getInstance().getConfigDir().resolve("borderquest.json");
+    }
+
+    public String getRawJson() {
+        return GSON.toJson(this);
+    }
+
+    public boolean writeRawJson(String json) {
+        try {
+            GSON.fromJson(json, BorderQuestConfig.class);
+            Files.writeString(configPath(), json);
+            return true;
+        } catch (Exception e) {
+            BorderQuest.LOGGER.error("[BorderQuest] Invalid config JSON: {}", e.getMessage());
+            return false;
+        }
     }
 
     // -----------------------------------------------------------------------

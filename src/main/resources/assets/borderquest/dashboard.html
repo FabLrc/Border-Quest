@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Border Quest Dashboard</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#1a1a2e;--card:#16213e;--accent-gold:#ffad1f;--accent-aqua:#00d4aa;--accent-red:#ff4757;--accent-green:#2ed573;--accent-blue:#4a9eff;--text:#e0e0e0;--text-dim:#8892b0;--border:#2a2a4a;--radius:8px;--transition:0.2s ease}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.container{max-width:900px;margin:0 auto;padding:16px}
+header{display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid var(--border);margin-bottom:20px}
+header h1{font-size:1.4rem;color:var(--accent-gold);font-weight:700}
+.header-right{display:flex;align-items:center;gap:12px}
+#refresh-status{font-size:0.75rem;color:var(--text-dim)}
+#refresh-status.live{color:var(--accent-green)}
+.btn{background:var(--accent-blue);color:#fff;border:none;padding:8px 16px;border-radius:var(--radius);cursor:pointer;font-size:0.85rem;transition:background var(--transition)}
+.btn:hover{filter:brightness(1.15)}
+.btn-danger{background:var(--accent-red)}
+.btn-gold{background:var(--accent-gold);color:#1a1a2e}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:var(--radius);cursor:pointer;font-size:0.8rem}
+.btn-outline:hover{border-color:var(--text-dim)}
+.card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:16px;margin-bottom:16px}
+.card h2{font-size:1rem;color:var(--accent-aqua);margin-bottom:12px;font-weight:600}
+.stage-header{display:flex;align-items:baseline;gap:8px;margin-bottom:4px}
+.stage-header h2{font-size:1.2rem;margin-bottom:0}
+.stage-header .title{color:var(--text);font-size:0.9rem}
+.progress-bar-wrap{background:#0d1117;border-radius:4px;height:20px;overflow:hidden;margin:8px 0}
+.progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent-gold),var(--accent-aqua));transition:width 0.5s ease;border-radius:4px;min-width:4px}
+.progress-text{font-size:0.8rem;color:var(--text-dim);text-align:right}
+.resources{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:12px}
+.resource{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-radius:4px;font-size:0.85rem}
+.resource.done{background:rgba(46,213,115,0.12);border:1px solid rgba(46,213,115,0.3)}
+.resource.pending{background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.2)}
+.resource .name{font-weight:500}
+.resource .check{font-weight:700}
+.resource.done .check{color:var(--accent-green)}
+.resource.pending .check{color:var(--accent-red)}
+.radius-info{font-size:0.85rem;color:var(--text-dim);margin-top:8px}
+.donors{display:flex;flex-direction:column;gap:6px}
+.donor{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:4px;font-size:0.85rem}
+.donor.gold{background:rgba(255,175,31,0.1)}
+.donor.silver{background:rgba(192,192,192,0.06)}
+.donor .rank{font-weight:700;width:28px;text-align:center}
+.donor.gold .rank{color:var(--accent-gold)}
+.donor.silver .rank{color:#c0c0c0}
+.donor .name{flex:1}
+.donor .count{font-weight:600;color:var(--accent-aqua)}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}
+.info-item{padding:8px;border-radius:4px;font-size:0.85rem;background:rgba(255,255,255,0.03)}
+.info-item .label{color:var(--text-dim);font-size:0.75rem}
+.info-item .value{font-weight:600;margin-top:2px}
+.altars{margin-top:8px}
+.altars summary{cursor:pointer;font-size:0.85rem;color:var(--accent-blue)}
+.altar-entry{padding:4px 8px;font-size:0.8rem;color:var(--text-dim)}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:100;align-items:center;justify-content:center}
+.modal.open{display:flex}
+.modal-content{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;width:90%;max-width:600px;max-height:90vh;overflow-y:auto}
+.modal-content h2{font-size:1.1rem;color:var(--accent-gold);margin-bottom:16px}
+.modal-content h3{font-size:0.95rem;color:var(--accent-aqua);margin:16px 0 8px}
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-size:0.8rem;color:var(--text-dim);margin-bottom:4px}
+.form-group input,.form-group textarea{width:100%;background:#0d1117;border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:4px;font-size:0.9rem;font-family:monospace}
+.form-group textarea{min-height:200px;font-size:0.8rem;resize:vertical}
+.admin-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.feedback{margin-top:8px;padding:8px 12px;border-radius:4px;font-size:0.85rem;display:none}
+.feedback.success{display:block;background:rgba(46,213,115,0.15);color:var(--accent-green);border:1px solid rgba(46,213,115,0.3)}
+.feedback.error{display:block;background:rgba(255,71,87,0.15);color:var(--accent-red);border:1px solid rgba(255,71,87,0.3)}
+.login-error{color:var(--accent-red);font-size:0.85rem;margin-top:8px;display:none}
+@media(max-width:600px){.resources{grid-template-columns:1fr}.admin-actions{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<h1>&#9733; Border Quest &#9733;</h1>
+<div class="header-right">
+<span id="refresh-status">&#9679; Loading...</span>
+<button class="btn-outline" onclick="toggleAdmin()">&#9881; Admin</button>
+</div>
+</header>
+
+<div id="content">
+<div class="card" id="stage-card">
+<div class="stage-header">
+<h2>Stage <span id="stage-num">-</span>/<span id="stage-total">-</span></h2>
+<span class="title" id="stage-title">-</span>
+</div>
+<div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-bar" style="width:0%"></div></div>
+<div class="progress-text" id="progress-text">0% complete</div>
+<div class="radius-info" id="radius-info">Radius: - blocks</div>
+<div class="resources" id="resources"></div>
+<div id="done-message" style="display:none;text-align:center;padding:20px;color:var(--accent-gold);font-weight:700;font-size:1.1rem">
+&#9733; THE BARRIER HAS FALLEN! &#9733;
+</div>
+</div>
+
+<div class="card" id="leaderboard-card">
+<h2>&#127942; Top Donors</h2>
+<div class="donors" id="donors"><div style="color:var(--text-dim);font-size:0.85rem">No donations yet.</div></div>
+</div>
+
+<div class="card" id="info-card">
+<h2>&#8505; Server Info</h2>
+<div class="info-grid">
+<div class="info-item"><div class="label">Players Online</div><div class="value" id="players-online">-</div></div>
+<div class="info-item"><div class="label">Border Center</div><div class="value" id="border-center">-</div></div>
+<div class="info-item"><div class="label">Altars</div><div class="value" id="altar-count">-</div></div>
+</div>
+<details class="altars" id="altars-details">
+<summary>Show altar list</summary>
+<div id="altars-list"></div>
+</details>
+</div>
+</div>
+</div>
+
+<div class="modal" id="admin-modal">
+<div class="modal-content">
+<div id="admin-login-view">
+<h2>&#128274; Admin Login</h2>
+<div class="form-group">
+<label>Password (check server console on first start)</label>
+<input type="password" id="admin-password" placeholder="Dashboard admin password" onkeydown="if(event.key==='Enter')adminLogin()">
+</div>
+<button class="btn btn-gold" onclick="adminLogin()">Login</button>
+<div class="login-error" id="login-error">Invalid password</div>
+</div>
+<div id="admin-panel-view" style="display:none">
+<h2>&#9881; Admin Panel</h2>
+<div class="admin-actions">
+<button class="btn" onclick="adminAction('reload')">&#128260; Reload Config</button>
+<button class="btn" onclick="adminAction('skip')">&#9197; Skip Stage</button>
+<button class="btn btn-danger" onclick="adminAction('reset')">&#8635; Reset Quest</button>
+</div>
+<h3>Config Editor</h3>
+<div class="form-group">
+<textarea id="config-editor" placeholder="Loading config..."></textarea>
+</div>
+<div class="admin-actions">
+<button class="btn" onclick="saveConfig()">&#128190; Save Config</button>
+<button class="btn btn-outline" onclick="loadConfig()">&#128194; Reload from file</button>
+</div>
+<div class="feedback" id="admin-feedback"></div>
+<button class="btn-outline" onclick="adminLogout()" style="margin-top:8px">Logout</button>
+</div>
+</div>
+</div>
+
+<script>
+// --- State ---
+let adminPassword = sessionStorage.getItem('bq_admin_password') || '';
+if (adminPassword) document.getElementById('admin-password').value = adminPassword;
+let lastStatus = null;
+
+// --- Polling ---
+async function fetchJSON(url) {
+try{const r=await fetch(url);if(!r.ok)return null;return await r.json()}
+catch(e){return null}
+}
+
+function setRefreshStatus(ok) {
+const el=document.getElementById('refresh-status');
+el.textContent=ok?'&#9679; Live':'&#9679; Offline';
+el.style.color=ok?'var(--accent-green)':'var(--accent-red)';
+}
+
+async function poll() {
+const status=await fetchJSON('/api/status');
+if(!status){setRefreshStatus(false);return}
+setRefreshStatus(true);
+lastStatus=status;
+
+document.getElementById('stage-num').textContent=status.stage;
+document.getElementById('stage-total').textContent=status.totalStages;
+document.getElementById('stage-title').textContent=status.title;
+
+if(status.isLastStage){
+document.getElementById('done-message').style.display='block';
+document.getElementById('progress-bar').style.width='100%';
+document.getElementById('progress-text').textContent='COMPLETE!';
+document.getElementById('radius-info').textContent='Radius: unlimited';
+document.getElementById('resources').innerHTML='';
+}else{
+document.getElementById('done-message').style.display='none';
+let totalSubmitted=0,totalRequired=0;
+status.resources.forEach(r=>{totalSubmitted+=Math.min(r.submitted,r.required);totalRequired+=r.required});
+const pct=totalRequired>0?Math.round(totalSubmitted/totalRequired*100):0;
+document.getElementById('progress-bar').style.width=pct+'%';
+document.getElementById('progress-text').textContent=pct+'% complete';
+document.getElementById('radius-info').textContent=
+'Radius: '+status.radius+' &#8594; '+status.nextRadius+' blocks';
+
+let html='';
+status.resources.forEach(r=>{
+const cls=r.done?'done':'pending';
+const ck=r.done?'&#10003;':'&#10007;';
+html+='<div class="resource '+cls+'"><span class="name">'+r.name+'</span><span class="check">'+ck+' '+r.submitted+'/'+r.required+'</span></div>';
+});
+document.getElementById('resources').innerHTML=html;
+}
+
+document.getElementById('players-online').textContent=status.playersOnline;
+document.getElementById('border-center').textContent=Math.round(status.centerX)+', '+Math.round(status.centerZ);
+}
+
+async function pollLeaderboard() {
+const data=await fetchJSON('/api/leaderboard');
+if(!data||!data.donors||data.donors.length===0){
+document.getElementById('donors').innerHTML='<div style="color:var(--text-dim);font-size:0.85rem">No donations yet.</div>';
+return;
+}
+let html='';
+data.donors.forEach((d,i)=>{
+const cls=i===0?'gold':i===1?'silver':'';
+html+='<div class="donor '+cls+'"><span class="rank">#'+d.rank+'</span><span class="name">'+d.name+'</span><span class="count">'+d.count+'</span></div>';
+});
+document.getElementById('donors').innerHTML=html;
+}
+
+async function pollAltars() {
+const data=await fetchJSON('/api/altars');
+if(!data)return;
+document.getElementById('altar-count').textContent=data.count;
+if(data.altars&&data.altars.length>0){
+let html='';
+data.altars.forEach(a=>{
+const name=a.name?escapeHtml(a.name)+' at ':'';
+html+='<div class="altar-entry">&#128205; '+name+'('+a.x+', '+a.y+', '+a.z+')</div>';
+});
+document.getElementById('altars-list').innerHTML=html;
+}else{
+document.getElementById('altars-list').innerHTML='<div class="altar-entry">No altars registered.</div>';
+}
+}
+
+function escapeHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+// --- Admin ---
+function toggleAdmin(){
+const modal=document.getElementById('admin-modal');
+const open=modal.classList.contains('open');
+if(open){modal.classList.remove('open');return}
+modal.classList.add('open');
+if(adminPassword)switchToPanel();
+}
+
+function adminLogin(){
+const pwd=document.getElementById('admin-password').value;
+fetch('/api/admin/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pwd})})
+.then(r=>r.json()).then(d=>{
+if(d.success){
+adminPassword=pwd;
+sessionStorage.setItem('bq_admin_password',pwd);
+switchToPanel();
+}else{
+document.getElementById('login-error').style.display='block';
+}
+}).catch(()=>{
+document.getElementById('login-error').textContent='Connection error';
+document.getElementById('login-error').style.display='block';
+});
+}
+
+function switchToPanel(){
+document.getElementById('admin-login-view').style.display='none';
+document.getElementById('admin-panel-view').style.display='block';
+loadConfig();
+}
+
+function adminLogout(){
+adminPassword='';
+sessionStorage.removeItem('bq_admin_password');
+document.getElementById('admin-login-view').style.display='block';
+document.getElementById('admin-panel-view').style.display='none';
+document.getElementById('admin-password').value='';
+document.getElementById('login-error').style.display='none';
+document.getElementById('admin-modal').classList.remove('open');
+}
+
+function showFeedback(msg,type){
+const el=document.getElementById('admin-feedback');
+el.textContent=msg;
+el.className='feedback '+type;
+}
+
+function adminAction(action){
+showFeedback('Executing...','success');
+fetch('/api/admin/command',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPassword,action:action})})
+.then(r=>r.json()).then(d=>{
+showFeedback(d.message||(d.success?'Done':'Error'),d.success?'success':'error');
+if(d.success){poll();pollLeaderboard();pollAltars();}
+}).catch(()=>showFeedback('Network error','error'));
+}
+
+function loadConfig(){
+showFeedback('Loading...','success');
+fetch('/api/admin/config?password='+encodeURIComponent(adminPassword))
+.then(r=>r.json()).then(d=>{
+if(d.config){
+document.getElementById('config-editor').value=formatJson(d.config);
+showFeedback('Config loaded','success');
+}else{
+showFeedback('Failed to load config','error');
+}
+}).catch(()=>showFeedback('Network error','error'));
+}
+
+function saveConfig(){
+const raw=document.getElementById('config-editor').value;
+showFeedback('Saving...','success');
+fetch('/api/admin/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPassword,config:raw})})
+.then(r=>r.json()).then(d=>{
+showFeedback(d.message||(d.success?'Config saved and reloaded':'Error'),d.success?'success':'error');
+if(d.success){poll();}
+}).catch(()=>showFeedback('Network error','error'));
+}
+
+function formatJson(s){
+try{return JSON.stringify(JSON.parse(s),null,2)}
+catch(e){return s}
+}
+
+// --- Init ---
+poll();pollLeaderboard();pollAltars();
+setInterval(poll,5000);
+setInterval(pollLeaderboard,5000);
+setInterval(pollAltars,5000);
+</script>
+</body>
+</html>

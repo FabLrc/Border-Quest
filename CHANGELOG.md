@@ -11,6 +11,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   Added `borderquest.command.language` config option (`"en_us"` by default, `"fr_fr"` also bundled).
   New files: `ModTranslations.java`, `TranslationKeys.java`, `lang/en_us.json`, `lang/fr_fr.json`.
 
+- **Web dashboard + admin panel**: Embedded HTTP server (JDK `HttpServer`, zero dependencies)
+  serving a live dashboard and admin panel on a configurable port (default 8123).
+  - Public dashboard: stage progress, resource checklist, donation leaderboard, altar list,
+    player count — auto-refreshes every 5 seconds.
+  - Admin panel (password-protected): buttons for `/bq reload`, `/bq skip`, `/bq reset`,
+    and a JSON config editor with save/reload.
+  - Admin password randomly generated on first launch, printed once in server log,
+    modifiable via config file or the admin panel itself.
+  - Config section: `"dashboard": { "enabled": true, "port": 8123, "bindAddress": "127.0.0.1", "password": "..." }`
+  - Thread-safe: all state reads/writes scheduled via `server.execute()` with `CompletableFuture`.
+  New files: `DashboardServer.java`, `DashboardApi.java`, `dashboard.html`.
+
 ## [2.0.0-beta] — 2026-05-09
 
 ### Added
