@@ -1,9 +1,10 @@
 plugins {
     id 'fabric-loom' version '1.13.6'
     id 'maven-publish'
+    id 'com.modrinth.minotaur' version '2.+'
 }
 
-version = project.mod_version
+version = project.findProperty('mod_version') ?: project.mod_version ?: '0.0.0-dev'
 group = project.maven_group
 
 base {
@@ -21,9 +22,7 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    // Intégrations carte (optionnelles au runtime — le mod fonctionne sans elles)
     compileOnly "de.bluecolored:bluemap-api:2.7.7"
-    // Dynmap : intégré via réflexion, pas de dépendance à la compilation
 }
 
 processResources {
@@ -46,5 +45,18 @@ java {
 jar {
     from("LICENSE") {
         rename { "${it}_${project.base.archivesName.get()}" }
+    }
+}
+
+modrinth {
+    token = System.getenv("MODRINTH_TOKEN")
+    projectId = "borderquest"
+    versionNumber = project.version
+    versionType = "release"
+    uploadFile = remapJar
+    gameVersions = ["${project.minecraft_version}"]
+    loaders = ["fabric"]
+    dependencies {
+        required.project "fabric-api"
     }
 }

@@ -1,16 +1,15 @@
-name: Build and Release
+name: Release
 
 on:
   push:
-    branches:
-      - main
+    tags: ['v*']
 
 permissions:
   contents: write
 
 jobs:
-  build:
-    name: Build and Create Release
+  release:
+    name: Build and Publish Release
     runs-on: windows-latest
 
     steps:
@@ -24,15 +23,26 @@ jobs:
           java-version: '21'
           cache: 'gradle'
 
-      - name: Build with build.bat
-        run: .\build.bat
+      - name: Extract version from tag
+        shell: pwsh
+        run: |
+          $version = $env:GITHUB_REF_NAME -replace '^v', ''
+          echo "MOD_VERSION=$version" >> $env:GITHUB_ENV
 
-      - name: Create Release
+      - name: Build
+        run: .\gradlew.bat build -Pmod_version="$env:MOD_VERSION"
+
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: build-${{ github.run_number }}
-          name: "Development Build #${{ github.run_number }}"
-          body: "Build automatique généré depuis la branche main via GitHub Actions."
+          tag_name: ${{ github.ref_name }}
+          name: "v${{ env.MOD_VERSION }}"
+          body: "Border Quest v${{ env.MOD_VERSION }}"
           files: build/libs/*.jar
           draft: false
           prerelease: false
+
+      - name: Publish to Modrinth
+        run: .\gradlew.bat modrinth -Pmod_version="$env:MOD_VERSION"
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}

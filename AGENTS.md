@@ -10,9 +10,13 @@ java -jar gradle/wrapper/gradle-wrapper.jar build
 ```
 Requires Java 21.
 
-Output: `build/libs/border-quest-1.0.0.jar`
+Output: `build/libs/border-quest-<version>.jar` (version from `gradle.properties`, or override with `-Pmod_version=X.Y.Z`).
 
-No test, lint, or typecheck commands exist. CI runs `build.bat` on `windows-latest`.
+No test, lint, or typecheck commands exist.
+
+CI:
+- `build.yml` runs on all branches/PRs (compile check, no release)
+- `release.yml` triggers on tag `v*` → builds, creates GitHub Release, publishes to Modrinth
 
 ## Source layout
 
