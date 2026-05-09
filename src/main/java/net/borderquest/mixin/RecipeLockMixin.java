@@ -2,10 +2,11 @@ package net.borderquest.mixin;
 
 import net.borderquest.BorderQuest;
 import net.borderquest.BorderQuestManager;
+import net.borderquest.ModTranslations;
+import net.borderquest.TranslationKeys;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ServerboundPlaceRecipePacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -50,7 +51,7 @@ public class RecipeLockMixin {
             for (ServerPlayer player : mgr.getServer().getPlayerList().getPlayers()) {
                 if (player.containerMenu == handler) {
                     player.sendSystemMessage(
-                        Component.literal("Cette recette n'est pas encore debloquee.").withStyle(ChatFormatting.RED)
+                        ModTranslations.t(TranslationKeys.RECIPE_LOCKED).withStyle(ChatFormatting.RED)
                     );
                     break;
                 }
@@ -81,7 +82,7 @@ public class RecipeLockMixin {
             for (ServerPlayer player : mgr.getServer().getPlayerList().getPlayers()) {
                 if (player.containerMenu == handler) {
                     player.sendSystemMessage(
-                        Component.literal("Cette recette n'est pas encore debloquee.").withStyle(ChatFormatting.RED)
+                        ModTranslations.t(TranslationKeys.RECIPE_LOCKED).withStyle(ChatFormatting.RED)
                     );
                     break;
                 }
@@ -146,7 +147,7 @@ public class RecipeLockMixin {
                 if (!mgr.isRecipeUnlocked(itemId)) {
                     menu.getSlot(0).set(ItemStack.EMPTY);
                     handler.player.sendSystemMessage(
-                        Component.literal("Cette recette n'est pas encore debloquee.").withStyle(ChatFormatting.RED)
+                        ModTranslations.t(TranslationKeys.RECIPE_LOCKED).withStyle(ChatFormatting.RED)
                     );
                 }
             }

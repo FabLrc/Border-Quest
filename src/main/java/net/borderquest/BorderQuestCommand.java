@@ -89,7 +89,7 @@ public class BorderQuestCommand {
         var player = ctx.getSource().getPlayer();
         if (player == null) {
             ctx.getSource().sendFailure(
-                Component.literal("Cette commande doit etre executee par un joueur.").withStyle(ChatFormatting.RED));
+                ModTranslations.t(TranslationKeys.CMD_PLAYER_ONLY).withStyle(ChatFormatting.RED));
             return 0;
         }
 
@@ -107,7 +107,7 @@ public class BorderQuestCommand {
         mgr.updateSidebar();
 
         ctx.getSource().getServer().getPlayerList().broadcastSystemMessage(
-            Component.literal("[BorderQuest] Reinitialise au stade 1 par un operateur !").withStyle(ChatFormatting.YELLOW),
+            ModTranslations.t(TranslationKeys.BROADCAST_RESET).withStyle(ChatFormatting.YELLOW),
             false
         );
         return 1;
@@ -119,7 +119,7 @@ public class BorderQuestCommand {
 
         if (mgr.isLastStage()) {
             ctx.getSource().sendFailure(
-                Component.literal("Deja au dernier stade !").withStyle(ChatFormatting.YELLOW));
+                ModTranslations.t(TranslationKeys.CMD_ALREADY_FINAL).withStyle(ChatFormatting.YELLOW));
             return 0;
         }
 
@@ -134,7 +134,7 @@ public class BorderQuestCommand {
         mgr.updateSidebar();
 
         ctx.getSource().getServer().getPlayerList().broadcastSystemMessage(
-            Component.literal("[BorderQuest] Stade passe ! Maintenant au stade " + (state.currentStage + 1))
+            ModTranslations.t(TranslationKeys.BROADCAST_SKIP, state.currentStage + 1)
                 .withStyle(ChatFormatting.YELLOW),
             false
         );
@@ -146,10 +146,11 @@ public class BorderQuestCommand {
         if (mgr == null) { ctx.getSource().sendFailure(noManager()); return 0; }
 
         BorderQuestConfig.load();
+        ModTranslations.load();
         mgr.load();
         mgr.applyBorder();
         mgr.updateSidebar();
-        ctx.getSource().sendSuccess(() -> Component.literal("[BorderQuest] Config et etat recharges !").withStyle(ChatFormatting.GREEN), false);
+        ctx.getSource().sendSuccess(() -> ModTranslations.t(TranslationKeys.CMD_RELOADED).withStyle(ChatFormatting.GREEN), false);
         return 1;
     }
 
@@ -163,29 +164,29 @@ public class BorderQuestCommand {
 
         ServerPlayer player = ctx.getSource().getPlayer();
         if (player == null) {
-            ctx.getSource().sendFailure(Component.literal("Commande reservee aux joueurs.").withStyle(ChatFormatting.RED));
+            ctx.getSource().sendFailure(ModTranslations.t(TranslationKeys.CMD_PLAYER_ONLY).withStyle(ChatFormatting.RED));
             return 0;
         }
 
         BlockPos pos = getLookedBlock(player);
         if (pos == null) {
-            ctx.getSource().sendFailure(Component.literal("Regardez un bloc pour le definir comme autel.").withStyle(ChatFormatting.RED));
+            ctx.getSource().sendFailure(ModTranslations.t(TranslationKeys.CMD_LOOK_BLOCK).withStyle(ChatFormatting.RED));
             return 0;
         }
 
         if (mgr.addAltar(pos, name)) {
             String label = name.isBlank() ? "" : " \"" + name + "\"";
-            ctx.getSource().sendSuccess(() -> Component.literal(
-                "[BorderQuest] Autel" + label + " enregistre en "
-                + pos.getX() + "," + pos.getY() + "," + pos.getZ()
-                + " (total: " + mgr.getAltarCount() + ")").withStyle(ChatFormatting.GREEN), false);
+            ctx.getSource().sendSuccess(() -> ModTranslations.t(TranslationKeys.CMD_ALTAR_SET,
+                label, pos.getX(), pos.getY(), pos.getZ(), mgr.getAltarCount())
+                .withStyle(ChatFormatting.GREEN), false);
         } else {
             if (!name.isBlank()) {
                 mgr.setAltarName(pos, name);
-                ctx.getSource().sendSuccess(() -> Component.literal(
-                    "[BorderQuest] Nom de l'autel mis a jour : \"" + name + "\"").withStyle(ChatFormatting.GREEN), false);
+                ctx.getSource().sendSuccess(() -> ModTranslations.t(TranslationKeys.CMD_ALTAR_NAME, name)
+                    .withStyle(ChatFormatting.GREEN), false);
             } else {
-                ctx.getSource().sendFailure(Component.literal("[BorderQuest] Ce bloc est deja un autel.").withStyle(ChatFormatting.YELLOW));
+                ctx.getSource().sendFailure(ModTranslations.t(TranslationKeys.CMD_ALTAR_DUPLICATE)
+                    .withStyle(ChatFormatting.YELLOW));
             }
         }
         return 1;
@@ -197,16 +198,16 @@ public class BorderQuestCommand {
 
         List<Map.Entry<String, Integer>> top = mgr.getTopDonors(10);
         if (top.isEmpty()) {
-            ctx.getSource().sendFailure(Component.literal("Aucun don enregistre.").withStyle(ChatFormatting.YELLOW));
+            ctx.getSource().sendFailure(ModTranslations.t(TranslationKeys.LADDER_EMPTY).withStyle(ChatFormatting.YELLOW));
             return 0;
         }
 
         MutableComponent t = Component.empty();
-        t.append(Component.literal("=== Classement des donateurs ===\n").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
+        t.append(ModTranslations.t(TranslationKeys.LADDER_HEADER).withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
         for (int i = 0; i < top.size(); i++) {
             String name = mgr.getState().playerNames.getOrDefault(top.get(i).getKey(), "???");
             ChatFormatting color = (i == 0) ? ChatFormatting.GOLD : (i == 1) ? ChatFormatting.GRAY : ChatFormatting.WHITE;
-            t.append(Component.literal("#" + (i + 1) + " " + name + " - " + top.get(i).getValue() + "\n").withStyle(color));
+            t.append(ModTranslations.t(TranslationKeys.LADDER_ENTRY, i + 1, name, top.get(i).getValue()).withStyle(color));
         }
         ctx.getSource().sendSuccess(() -> t, false);
         return 1;
@@ -218,21 +219,22 @@ public class BorderQuestCommand {
 
         ServerPlayer player = ctx.getSource().getPlayer();
         if (player == null) {
-            ctx.getSource().sendFailure(Component.literal("Commande reservee aux joueurs.").withStyle(ChatFormatting.RED));
+            ctx.getSource().sendFailure(ModTranslations.t(TranslationKeys.CMD_PLAYER_ONLY).withStyle(ChatFormatting.RED));
             return 0;
         }
 
         BlockPos pos = getLookedBlock(player);
         if (pos == null) {
-            ctx.getSource().sendFailure(Component.literal("Regardez un autel pour le retirer.").withStyle(ChatFormatting.RED));
+            ctx.getSource().sendFailure(ModTranslations.t(TranslationKeys.CMD_LOOK_ALTAR).withStyle(ChatFormatting.RED));
             return 0;
         }
 
         if (mgr.removeAltar(pos)) {
-            ctx.getSource().sendSuccess(() -> Component.literal(
-                "[BorderQuest] Autel retire (restants: " + mgr.getAltarCount() + ")").withStyle(ChatFormatting.GREEN), false);
+            ctx.getSource().sendSuccess(() -> ModTranslations.t(TranslationKeys.CMD_ALTAR_REMOVED, mgr.getAltarCount())
+                .withStyle(ChatFormatting.GREEN), false);
         } else {
-            ctx.getSource().sendFailure(Component.literal("[BorderQuest] Ce bloc n'est pas un autel.").withStyle(ChatFormatting.YELLOW));
+            ctx.getSource().sendFailure(ModTranslations.t(TranslationKeys.CMD_ALTAR_NOT_FOUND)
+                .withStyle(ChatFormatting.YELLOW));
         }
         return 1;
     }
@@ -247,6 +249,6 @@ public class BorderQuestCommand {
     // -----------------------------------------------------------------------
 
     private static Component noManager() {
-        return Component.literal("[BorderQuest] Le mod n'est pas encore initialise.").withStyle(ChatFormatting.RED);
+        return ModTranslations.t(TranslationKeys.CMD_NOT_INIT).withStyle(ChatFormatting.RED);
     }
 }

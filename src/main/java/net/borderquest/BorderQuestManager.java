@@ -9,6 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
@@ -344,11 +345,11 @@ public class BorderQuestManager {
     private void celebrateStageComplete(boolean isFinal, StageDefinition newStage) {
         // Titre plein écran
         Component title    = isFinal
-            ? Component.literal("★ LIBERTE ! ★").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD)
-            : Component.literal("✦ ZONE AGRANDIE ✦").withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD);
+            ? ModTranslations.t(TranslationKeys.TITLE_FREEDOM).withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD)
+            : ModTranslations.t(TranslationKeys.TITLE_EXPANSION).withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD);
         Component subtitle = isFinal
-            ? Component.literal("Le monde vous appartient !").withStyle(ChatFormatting.YELLOW)
-            : Component.literal("Rayon : " + (int) newStage.borderRadius + " blocs | " + newStage.title)
+            ? ModTranslations.t(TranslationKeys.SUBTITLE_FREEDOM).withStyle(ChatFormatting.YELLOW)
+            : ModTranslations.t(TranslationKeys.SUBTITLE_EXPANSION, (int) newStage.borderRadius, newStage.title)
                   .withStyle(ChatFormatting.WHITE);
 
         server.getPlayerList().broadcastAll(new ClientboundSetTitlesAnimationPacket(10, 80, 20));
@@ -388,10 +389,10 @@ public class BorderQuestManager {
 
     public Component submitItems(ServerPlayer player) {
         if (isLastStage())
-            return Component.literal("La barriere est deja entierement levee !").withStyle(ChatFormatting.GOLD);
+            return ModTranslations.t(TranslationKeys.SUBMIT_ALREADY_DONE).withStyle(ChatFormatting.GOLD);
 
         if (resolvedRequirements.isEmpty())
-            return Component.literal("Aucune ressource requise pour ce stade.").withStyle(ChatFormatting.YELLOW);
+            return ModTranslations.t(TranslationKeys.SUBMIT_NO_REQUIREMENTS).withStyle(ChatFormatting.YELLOW);
 
         boolean submittedAnything = false;
         StringBuilder log = new StringBuilder();
@@ -417,7 +418,7 @@ public class BorderQuestManager {
         }
 
         if (!submittedAnything)
-            return Component.literal("Vous n'avez aucune ressource requise.").withStyle(ChatFormatting.RED);
+            return ModTranslations.t(TranslationKeys.SUBMIT_NO_RESOURCES).withStyle(ChatFormatting.RED);
 
         state.playerDonations.merge(playerUuid, totalDonated, Integer::sum);
         state.playerNames.put(playerUuid, playerName);
@@ -426,8 +427,7 @@ public class BorderQuestManager {
         BorderQuestConfig cfgAnnounce = BorderQuestConfig.get();
         if (cfgAnnounce.donationAnnouncementsEnabled && totalDonated >= cfgAnnounce.donationAnnounceMinItems) {
             server.getPlayerList().broadcastSystemMessage(
-                Component.literal("\u00a7b[BorderQuest] \u00a7f" + playerName
-                    + " \u00a77a soumis \u00a7f" + totalDonated + " \u00a77objet(s) !"),
+                ModTranslations.t(TranslationKeys.BROADCAST_SUBMIT, playerName, totalDonated),
                 false
             );
         }
@@ -437,10 +437,11 @@ public class BorderQuestManager {
 
         if (isStageComplete()) {
             advanceStage();
-            return Component.literal("Objectif atteint ! La barriere s'agrandit !\n" + log.toString().trim())
+            return ModTranslations.t(TranslationKeys.SUBMIT_COMPLETE, log.toString().trim())
                 .withStyle(ChatFormatting.GREEN);
         }
-        return Component.literal("Ressources soumises :\n" + log.toString().trim()).withStyle(ChatFormatting.GREEN);
+        return ModTranslations.t(TranslationKeys.SUBMIT_PROGRESS, log.toString().trim())
+            .withStyle(ChatFormatting.GREEN);
     }
 
     private void advanceStage() {
@@ -468,9 +469,9 @@ public class BorderQuestManager {
 
         // Annonce chat
         Component announcement = isFinal
-            ? Component.literal("=== LIBERTE ! La barriere est tombee ! ===").withStyle(ChatFormatting.GOLD)
-            : Component.literal("=== Stade " + state.currentStage + " valide ! Rayon -> " +
-                (int) newStage.borderRadius + " blocs | " + newStage.title + " ===")
+            ? ModTranslations.t(TranslationKeys.BROADCAST_FREEDOM).withStyle(ChatFormatting.GOLD)
+            : ModTranslations.t(TranslationKeys.BROADCAST_STAGE, state.currentStage,
+                (int) newStage.borderRadius, newStage.title)
               .withStyle(ChatFormatting.AQUA);
         server.getPlayerList().broadcastSystemMessage(announcement, false);
 
@@ -522,7 +523,7 @@ public class BorderQuestManager {
                     BorderQuest.LOGGER.warn("[BorderQuest] Erreur distribution recompense: {}", e.getMessage());
                 }
             }
-            player.sendSystemMessage(Component.literal("\u00a76[BorderQuest] \u00a7aRecompenses du stade distribues !"));
+            player.sendSystemMessage(ModTranslations.t(TranslationKeys.REWARD_DISTRIBUTED));
         }
     }
 
@@ -532,23 +533,22 @@ public class BorderQuestManager {
 
     public Component getStatusText() {
         if (isLastStage())
-            return Component.literal("\u00a76=== Border Quest ===\n\u00a7aLA BARRIERE EST TOMBEE !");
+            return ModTranslations.t(TranslationKeys.STATUS_COMPLETE);
 
         StageDefinition stage = getCurrentStage();
-        StringBuilder sb = new StringBuilder();
-        sb.append("\u00a7e=== BQ Stade ").append(state.currentStage + 1)
-          .append("/").append(STAGES().size() - 1).append(" ===\n");
-        sb.append("\u00a7b").append(stage.title).append("\n");
-        sb.append("\u00a77Rayon: \u00a7f").append((int) stage.borderRadius).append(" blocs\n");
+        MutableComponent t = Component.empty();
+        t.append(ModTranslations.t(TranslationKeys.STATUS_HEADER, state.currentStage + 1, STAGES().size() - 1));
+        t.append(Component.literal("\u00a7b").append(Component.literal(stage.title)).append("\n"));
+        t.append(ModTranslations.t(TranslationKeys.STATUS_RADIUS, (int) stage.borderRadius));
         for (ItemReq req : resolvedRequirements) {
             int submitted = Math.min(state.submittedItems.getOrDefault(req.itemId(), 0), req.count());
             boolean done = submitted >= req.count();
             String name = req.itemId().replace("minecraft:", "");
-            sb.append(done ? "\u00a7a[OK] " : "\u00a7c[ ]  ")
-              .append(name).append(": ").append(submitted).append("/").append(req.count()).append("\n");
+            t.append(ModTranslations.t(done ? TranslationKeys.STATUS_ITEM_OK : TranslationKeys.STATUS_ITEM_NOK,
+                name, submitted, req.count()));
         }
-        sb.append("\u00a77/bq submit pour deposer.");
-        return Component.literal(sb.toString());
+        t.append(ModTranslations.t(TranslationKeys.STATUS_HINT));
+        return t;
     }
 
     // -----------------------------------------------------------------------
@@ -625,11 +625,11 @@ public class BorderQuestManager {
      */
     public Component donateFromHand(ServerPlayer player) {
         if (isLastStage())
-            return Component.literal("La barriere est deja levee !").withStyle(ChatFormatting.GOLD);
+            return ModTranslations.t(TranslationKeys.ALTAR_ALREADY_DOWN).withStyle(ChatFormatting.GOLD);
 
         ItemStack held = player.getMainHandItem();
         if (held.isEmpty())
-            return Component.literal("Tenez un objet requis en main.").withStyle(ChatFormatting.RED);
+            return ModTranslations.t(TranslationKeys.ALTAR_HOLD_ITEM).withStyle(ChatFormatting.RED);
 
         String itemId = BuiltInRegistries.ITEM.getKey(held.getItem()).toString();
 
@@ -639,12 +639,12 @@ public class BorderQuestManager {
             if (req.itemId().equals(itemId)) { matching = req; break; }
         }
         if (matching == null)
-            return Component.literal("Cet objet n'est pas requis ici.").withStyle(ChatFormatting.RED);
+            return ModTranslations.t(TranslationKeys.ALTAR_NOT_REQUIRED).withStyle(ChatFormatting.RED);
 
         int alreadySubmitted = state.submittedItems.getOrDefault(itemId, 0);
         int remaining = matching.count() - alreadySubmitted;
         if (remaining <= 0)
-            return Component.literal("Deja complet pour " + itemId.replace("minecraft:", "") + " !").withStyle(ChatFormatting.GREEN);
+            return ModTranslations.t(TranslationKeys.ALTAR_ALREADY_FULL, itemId.replace("minecraft:", "")).withStyle(ChatFormatting.GREEN);
 
         int toTake = Math.min(remaining, held.getCount());
         held.shrink(toTake);
@@ -659,8 +659,7 @@ public class BorderQuestManager {
         BorderQuestConfig cfgAlt = BorderQuestConfig.get();
         if (cfgAlt.donationAnnouncementsEnabled && toTake >= cfgAlt.donationAnnounceMinItems) {
             server.getPlayerList().broadcastSystemMessage(
-                Component.literal("\u00a7b[BorderQuest] \u00a7f" + player.getName().getString()
-                    + " \u00a77a depose \u00a7f" + toTake + " " + name + " \u00a77a l'autel !"),
+                ModTranslations.t(TranslationKeys.BROADCAST_DONATE, player.getName().getString(), toTake, name),
                 false
             );
         }
@@ -672,10 +671,10 @@ public class BorderQuestManager {
 
         if (isStageComplete()) {
             advanceStage();
-            return Component.literal("Objectif atteint ! +" + toTake + " " + name + " (" + newTotal + "/" + matching.count() + ")")
+            return ModTranslations.t(TranslationKeys.ALTAR_COMPLETE, toTake, name, newTotal, matching.count())
                 .withStyle(ChatFormatting.GREEN);
         }
-        return Component.literal("+" + toTake + " " + name + " | " + newTotal + "/" + matching.count())
+        return ModTranslations.t(TranslationKeys.ALTAR_PROGRESS, toTake, name, newTotal, matching.count())
             .withStyle(ChatFormatting.GREEN);
     }
 

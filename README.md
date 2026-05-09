@@ -24,6 +24,7 @@ Players collect resources, donate them to **altars**, and unlock an ever-growing
 | **Map integrations** | BlueMap, Dynmap, JourneyMap, Xaero's Minimap & World Map |
 | **Discord webhook** | Sends a message on every stage completion |
 | **Recipe locking** | Lock specific item recipes behind configurable stages |
+| **Translation system** | All messages are translatable via JSON language files (`en_us`, `fr_fr`, etc.). Language is set in config |
 | **Fully configurable** | All stages, radii and behaviour tunable via JSON |
 
 ---
@@ -87,6 +88,10 @@ File location: `config/borderquest.json`
 ```jsonc
 {
   // General -------------------------------------------------------------------
+
+  // Language of the mod messages (en_us, fr_fr, etc.). Must match a file in
+  // the mod JAR at assets/borderquest/lang/<language>.json
+  "language": "en_us",
 
   // Duration of the celebration fireworks on stage completion (ticks, 20 = 1s)
   "celebrationDurationTicks": 200,

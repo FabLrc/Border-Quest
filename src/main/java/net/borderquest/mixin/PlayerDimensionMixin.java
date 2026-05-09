@@ -3,8 +3,9 @@ package net.borderquest.mixin;
 import net.borderquest.BorderQuest;
 import net.borderquest.BorderQuestConfig;
 import net.borderquest.BorderQuestManager;
+import net.borderquest.ModTranslations;
+import net.borderquest.TranslationKeys;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.network.chat.Component;
 import net.minecraft.ChatFormatting;
 import net.minecraft.world.level.portal.TeleportTransition;
 import org.spongepowered.asm.mixin.Mixin;
@@ -34,9 +35,7 @@ public abstract class PlayerDimensionMixin {
             if (lock.worldId.equals(worldId) && currentStage1Based < lock.requiredStage) {
                 ServerPlayer self = (ServerPlayer) (Object) this;
                 self.sendSystemMessage(
-                    Component.literal("[BorderQuest] Ce monde est verrouille jusqu'au stade "
-                        + lock.requiredStage
-                        + " (vous etes au stade " + currentStage1Based + ").")
+                    ModTranslations.t(TranslationKeys.DIMENSION_LOCKED, lock.requiredStage, currentStage1Based)
                         .withStyle(ChatFormatting.RED),
                     true
                 );

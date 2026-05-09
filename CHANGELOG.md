@@ -3,6 +3,14 @@
 All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+
+### Added
+
+- **Translation system**: All mod messages are now translatable via JSON language files.
+  Added `borderquest.command.language` config option (`"en_us"` by default, `"fr_fr"` also bundled).
+  New files: `ModTranslations.java`, `TranslationKeys.java`, `lang/en_us.json`, `lang/fr_fr.json`.
+
 ## [2.0.0-beta] — 2026-05-09
 
 ### Added

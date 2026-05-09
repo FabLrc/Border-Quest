@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 public class SidebarDisplay {
 
     private static final String OBJECTIVE_NAME = "bq_sidebar";
+    private static final String[] DONOR_PREFIXES = {"\u00a76#1 ", "\u00a77#2 ", "\u00a77#3 "};
 
     private final MinecraftServer server;
 
@@ -47,11 +48,11 @@ public class SidebarDisplay {
         MutableComponent t = Component.empty();
         QuestState state = manager.getState();
 
-        t.append(Component.literal("\u2605 Border Quest \u2605\n").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
+        t.append(ModTranslations.t(TranslationKeys.HUD_HEADER).withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
 
         if (manager.isLastStage()) {
-            t.append(Component.literal("LA BARRIERE EST TOMBEE !\n").withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD));
-            t.append(Component.literal("Felicitations, vous avez tout accompli !").withStyle(ChatFormatting.YELLOW));
+            t.append(ModTranslations.t(TranslationKeys.HUD_FREEDOM).withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD));
+            t.append(ModTranslations.t(TranslationKeys.HUD_FREEDOM_SUB).withStyle(ChatFormatting.YELLOW));
             return t;
         }
 
@@ -59,13 +60,13 @@ public class SidebarDisplay {
         int totalStages = BorderQuestManager.STAGES().size() - 1;
         StageDefinition stage = manager.getCurrentStage();
 
-        t.append(Component.literal("Stade " + stageNum + "/" + totalStages).withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD));
-        t.append(Component.literal(" \u2014 ").withStyle(ChatFormatting.DARK_GRAY));
+        t.append(ModTranslations.t(TranslationKeys.HUD_STAGE, stageNum, totalStages).withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD));
+        t.append(ModTranslations.t(TranslationKeys.HUD_SEPARATOR).withStyle(ChatFormatting.DARK_GRAY));
         t.append(Component.literal(stage.title + "\n").withStyle(ChatFormatting.WHITE));
-        t.append(Component.literal("Rayon actuel : ").withStyle(ChatFormatting.GRAY));
-        t.append(Component.literal((int) stage.borderRadius + " blocs\n").withStyle(ChatFormatting.WHITE));
+        t.append(ModTranslations.t(TranslationKeys.HUD_RADIUS).withStyle(ChatFormatting.GRAY));
+        t.append(ModTranslations.t(TranslationKeys.HUD_RADIUS_VALUE, (int) stage.borderRadius).withStyle(ChatFormatting.WHITE));
         t.append(Component.literal("\n"));
-        t.append(Component.literal("Ressources a collecter :\n").withStyle(ChatFormatting.YELLOW));
+        t.append(ModTranslations.t(TranslationKeys.HUD_RESOURCES_HEADER).withStyle(ChatFormatting.YELLOW));
 
         for (StageDefinition.ItemReq req : manager.getResolvedRequirements()) {
             int submitted = Math.min(state.submittedItems.getOrDefault(req.itemId(), 0), req.count());
@@ -73,7 +74,7 @@ public class SidebarDisplay {
             String name   = req.itemId().replace("minecraft:", "");
             ChatFormatting color = done ? ChatFormatting.GREEN : ChatFormatting.RED;
             String symbol = done ? "\u2714 " : "\u2718 ";
-            t.append(Component.literal("  " + symbol + name + " : " + submitted + "/" + req.count() + "\n").withStyle(color));
+            t.append(ModTranslations.t(TranslationKeys.HUD_ITEM_PROGRESS, symbol, name, submitted, req.count()).withStyle(color));
         }
 
         return t;
@@ -85,17 +86,16 @@ public class SidebarDisplay {
 
         MutableComponent t = Component.empty();
         t.append(Component.literal("\n"));
-        t.append(Component.literal("Top Donateurs\n").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
+        t.append(ModTranslations.t(TranslationKeys.HUD_DONORS_HEADER).withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
 
         List<Map.Entry<String, Integer>> top = state.playerDonations.entrySet().stream()
             .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
             .limit(3)
             .collect(Collectors.toList());
 
-        String[] prefixes = {"\u00a76#1 ", "\u00a77#2 ", "\u00a77#3 "};
         for (int i = 0; i < top.size(); i++) {
             String name = state.playerNames.getOrDefault(top.get(i).getKey(), "???");
-            t.append(Component.literal(prefixes[i] + name + " - " + top.get(i).getValue() + "\n"));
+            t.append(ModTranslations.t(TranslationKeys.HUD_DONOR_ENTRY, DONOR_PREFIXES[i], name, top.get(i).getValue()));
         }
 
         return t;

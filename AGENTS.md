@@ -26,7 +26,7 @@ Branches:
 ## Source layout
 
 ```
-src/main/java/net/borderquest/        # all mod code (9 core + 5 map + 3 mixin files = 17)
+src/main/java/net/borderquest/        # all mod code (11 core + 5 map + 3 mixin files = 19)
   BorderQuest.java                    # ModInitializer entrypoint
   BorderQuestManager.java             # core game loop, border, progression
   BorderQuestCommand.java             # /bq command tree
@@ -36,11 +36,16 @@ src/main/java/net/borderquest/        # all mod code (9 core + 5 map + 3 mixin f
   BiomeResourceResolver.java          # biome → item resolution
   SidebarDisplay.java                 # tab-list HUD
   DiscordWebhook.java                 # async HTTP post
+  ModTranslations.java                # server-side translation loader (Gson, classpath JSON)
+  TranslationKeys.java                # constants for all translation keys (~48)
   mixin/SpawnProtectionMixin.java     # @Overwrite disables vanilla spawn protection (26.1.2)
   mixin/PlayerDimensionMixin.java     # gates Nether/End per stage
   mixin/RecipeLockMixin.java          # 4 inner mixins: crafting table, player 2x2, furnace, recipe book
   map/                                # BlueMap/Dynmap/JourneyMap/Xaero (reflection)
-src/main/resources/fabric.mod.json    # id=borderquest, environment=server
+src/main/resources/
+  fabric.mod.json                     # id=borderquest, environment=server
+  assets/borderquest/lang/en_us.json  # English translations
+  assets/borderquest/lang/fr_fr.json  # French translations
 remappedSrc/                          # Loom-generated, do not edit
 server/                               # actual server runtime
 ```
@@ -53,6 +58,7 @@ server/                               # actual server runtime
 - Commands use Fabric API's `CommandRegistrationCallback`. All start with `/bq`.
 - Gson serialization for both config and saved state. Config auto-generated on first server start.
 - Recipe locking via `unlockRecipes` per stage. Uses 4 inner mixin classes in `RecipeLockMixin.java` targeting `CraftingMenu`, `InventoryMenu`, `AbstractFurnaceBlockEntity`, and `ServerGamePacketListenerImpl` (Mojang mappings 26.1.2).
+- Translation system via `ModTranslations.java` + `TranslationKeys.java`. All user-facing messages use `ModTranslations.t(TranslationKeys.XXX, args...)` returning `MutableComponent`. Language files are in `assets/borderquest/lang/`. Config option `language` defaults to `"en_us"`. Fallback chain: configured → `en_us` → raw key. `ModTranslations.load()` is called after config load in `SERVER_STARTED` and on `/bq reload`.
 - **Update `CHANGELOG.md`** with every user-facing change. Follow the existing format and add a new `## [Unreleased]` section if none exists.
 
 ## gradle.properties

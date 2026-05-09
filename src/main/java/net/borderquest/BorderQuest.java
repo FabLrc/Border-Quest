@@ -1,7 +1,10 @@
 package net.borderquest;
 
 import net.borderquest.map.MapIntegrationManager;
+import net.borderquest.ModTranslations;
+import net.borderquest.TranslationKeys;
 import net.fabricmc.api.ModInitializer;
+
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -31,6 +34,7 @@ public class BorderQuest implements ModInitializer {
 
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             BorderQuestConfig.load();
+            ModTranslations.load();
             manager = new BorderQuestManager(server);
             manager.load();
             manager.setMapManager(new MapIntegrationManager(server));
@@ -61,8 +65,7 @@ public class BorderQuest implements ModInitializer {
 
             safeSpawnTeleport(player, world, manager);
 
-            player.sendSystemMessage(
-                Component.literal("\u00a7a[Border Quest] \u00a77Tapez \u00a7f/bq status \u00a77pour voir l'objectif."));
+            player.sendSystemMessage(ModTranslations.t(TranslationKeys.JOIN_WELCOME));
 
             server.execute(() -> manager.updateSidebar());
         });

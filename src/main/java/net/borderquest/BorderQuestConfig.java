@@ -28,6 +28,9 @@ public class BorderQuestConfig {
     // Paramètres généraux
     // -----------------------------------------------------------------------
 
+    /** Langue du mod (fr_fr, en_us, etc.). */
+    public String language = "en_us";
+
     /** Durée des feux d'artifice de célébration en ticks (20 ticks = 1 seconde). */
     public int celebrationDurationTicks = 200;
 
@@ -159,6 +162,7 @@ public class BorderQuestConfig {
 
     /** Applique les valeurs par défaut aux champs manquants ou invalides. */
     private void validate() {
+        if (language == null || language.isBlank()) language = "en_us";
         if (stages == null || stages.isEmpty()) stages = defaultStages();
         if (celebrationDurationTicks <= 0) celebrationDurationTicks = 200;
         if (borderDamagePerBlock < 0) borderDamagePerBlock = 0.2;
