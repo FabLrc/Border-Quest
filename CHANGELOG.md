@@ -3,6 +3,33 @@
 All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.0.0-beta] — 2026-05-09
+
+### Added
+
+- **Migration to Minecraft 26.1.2**: Full support for the new unobfuscated
+  Minecraft version with Mojang's official mappings (Yarn discontinued).
+- **Java 25**: Build requires JDK 25 (was Java 21).
+- **Fabric Loom 1.16.1**: Migrated to the new `net.fabricmc.fabric-loom` plugin.
+- **Gradle 9.5**: Build system updated.
+
+### Changed
+
+- **All source code**: Migrated from Yarn to Mojang official mappings
+  (17 files, 700+ line changes). Covers entity classes, networking packets,
+  commands, recipes, sound system, and particle APIs.
+- **Build system**: `modImplementation` → `implementation`,
+  `remapJar` → `jar`. No more Yarn mappings line.
+- **Fabric API**: Updated to 0.148.0+26.1.2 with Mojang-convention renames
+  (`ServerTickEvents.END_LEVEL_TICK`, `ServerLevelEvents`, etc.).
+- **BlueMap**: Temporarily disabled (no compatible API for 26.1 yet).
+
+### Fixed
+
+- **Spawn teleport**: Players outside border but above ground are now teleported.
+- **Biome fallback**: Logs category fallback uses oak_log (was sandstone).
+- **Altar color**: Orange color index on Xaero maps (was white).
+
 ## [1.1.0] — 2026-05-09
 
 ### Added

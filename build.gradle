@@ -61,7 +61,7 @@ modrinth {
     token = System.getenv("MODRINTH_TOKEN")
     projectId = "border-quest"
     versionNumber = project.version
-    versionType = "release"
+    versionType = "beta"
     uploadFile = jar
     gameVersions = ["${project.minecraft_version}"]
     loaders = ["fabric"]
