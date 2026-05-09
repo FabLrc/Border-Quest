@@ -9,10 +9,7 @@ import net.minecraft.server.MinecraftServer;
 
 import java.io.*;
 import java.net.InetSocketAddress;
-import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
 
 public class DashboardServer {
 
@@ -40,7 +37,9 @@ public class DashboardServer {
             server.createContext("/api/stages", DashboardServer::handleStages);
             server.createContext("/api/admin/auth", DashboardServer::handleAuth);
             server.createContext("/api/admin/command", DashboardServer::handleCommand);
+            server.createContext("/api/admin/config/get", DashboardServer::handleConfigGet);
             server.createContext("/api/admin/config", DashboardServer::handleConfig);
+            server.createContext("/api/lang", DashboardServer::handleLang);
 
             server.setExecutor(null);
             server.start();
@@ -110,6 +109,38 @@ public class DashboardServer {
         respond(ex, 200, "application/json", DashboardApi.stagesJson(manager, minecraftServer));
     }
 
+    private static void handleLang(HttpExchange ex) {
+        String query = ex.getRequestURI().getQuery();
+        String locale = "en_us";
+        if (query != null) {
+            for (String param : query.split("&")) {
+                String[] kv = param.split("=", 2);
+                if (kv.length == 2 && "locale".equals(kv[0])) {
+                    locale = kv[1].replaceAll("[^a-z_]", "");
+                    break;
+                }
+            }
+        }
+        String path = "assets/borderquest/lang/" + locale + ".json";
+        try (InputStream is = DashboardServer.class.getClassLoader().getResourceAsStream(path)) {
+            if (is != null) {
+                respond(ex, 200, "application/json; charset=utf-8",
+                    new String(is.readAllBytes(), StandardCharsets.UTF_8));
+                return;
+            }
+        } catch (IOException ignored) {}
+        // Fallback to en_us
+        try (InputStream en = DashboardServer.class.getClassLoader()
+                .getResourceAsStream("assets/borderquest/lang/en_us.json")) {
+            if (en != null) {
+                respond(ex, 200, "application/json; charset=utf-8",
+                    new String(en.readAllBytes(), StandardCharsets.UTF_8));
+                return;
+            }
+        } catch (IOException ignored) {}
+        respond(ex, 404, "application/json", "{}");
+    }
+
     private static void handleAuth(HttpExchange ex) {
         if ("OPTIONS".equals(ex.getRequestMethod())) { respond(ex, 204, "text/plain", ""); return; }
         String json = readBody(ex);
@@ -150,42 +181,53 @@ public class DashboardServer {
         }
     }
 
-    private static void handleConfig(HttpExchange ex) {
+    private static void handleConfigGet(HttpExchange ex) {
         if ("OPTIONS".equals(ex.getRequestMethod())) { respond(ex, 204, "text/plain", ""); return; }
+        if (!"POST".equals(ex.getRequestMethod())) {
+            respond(ex, 405, "application/json", "{\"success\":false,\"message\":\"POST required\"}");
+            return;
+        }
         if (manager == null) {
             respond(ex, 503, "application/json", "{\"success\":false,\"message\":\"Server not ready\"}");
             return;
         }
-
-        if ("GET".equals(ex.getRequestMethod())) {
-            Map<String, String> params = parseQuery(ex.getRequestURI().getQuery());
-            if (!checkPasswordParam(params)) {
+        String json = readBody(ex);
+        try {
+            JsonObject body = JsonParser.parseString(json).getAsJsonObject();
+            if (!checkPassword(body)) {
                 respond(ex, 401, "application/json", "{\"success\":false,\"message\":\"Unauthorized\"}");
                 return;
             }
             respond(ex, 200, "application/json",
                 DashboardApi.adminConfigJson(manager, minecraftServer));
+        } catch (Exception e) {
+            respond(ex, 400, "application/json", "{\"success\":false,\"message\":\"Invalid request\"}");
+        }
+    }
+
+    private static void handleConfig(HttpExchange ex) {
+        if ("OPTIONS".equals(ex.getRequestMethod())) { respond(ex, 204, "text/plain", ""); return; }
+        if (!"POST".equals(ex.getRequestMethod())) {
+            respond(ex, 405, "application/json", "{\"success\":false,\"message\":\"POST required\"}");
             return;
         }
-
-        if ("POST".equals(ex.getRequestMethod())) {
-            String json = readBody(ex);
-            try {
-                JsonObject body = JsonParser.parseString(json).getAsJsonObject();
-                if (!checkPassword(body)) {
-                    respond(ex, 401, "application/json", "{\"success\":false,\"message\":\"Unauthorized\"}");
-                    return;
-                }
-                String newConfig = body.get("config").getAsString();
-                respond(ex, 200, "application/json",
-                    DashboardApi.updateConfig(manager, minecraftServer, newConfig));
-            } catch (Exception e) {
-                respond(ex, 400, "application/json", "{\"success\":false,\"message\":\"Invalid request\"}");
+        if (manager == null) {
+            respond(ex, 503, "application/json", "{\"success\":false,\"message\":\"Server not ready\"}");
+            return;
+        }
+        String json = readBody(ex);
+        try {
+            JsonObject body = JsonParser.parseString(json).getAsJsonObject();
+            if (!checkPassword(body)) {
+                respond(ex, 401, "application/json", "{\"success\":false,\"message\":\"Unauthorized\"}");
+                return;
             }
-            return;
+            String newConfig = body.get("config").getAsString();
+            respond(ex, 200, "application/json",
+                DashboardApi.updateConfig(manager, minecraftServer, newConfig));
+        } catch (Exception e) {
+            respond(ex, 400, "application/json", "{\"success\":false,\"message\":\"Invalid request\"}");
         }
-
-        respond(ex, 405, "application/json", "{\"success\":false,\"message\":\"GET or POST required\"}");
     }
 
     // -----------------------------------------------------------------------
@@ -200,13 +242,6 @@ public class DashboardServer {
         } catch (Exception e) {
             return false;
         }
-    }
-
-    private static boolean checkPasswordParam(Map<String, String> params) {
-        String pwd = params.get("password");
-        if (pwd == null) return false;
-        String cfgPwd = BorderQuestConfig.get().dashboard.password;
-        return cfgPwd != null && cfgPwd.equals(pwd);
     }
 
     private static void respond(HttpExchange ex, int code, String contentType, String body) {
@@ -230,18 +265,4 @@ public class DashboardServer {
         }
     }
 
-    private static Map<String, String> parseQuery(String query) {
-        Map<String, String> params = new HashMap<>();
-        if (query == null || query.isBlank()) return params;
-        for (String param : query.split("&")) {
-            String[] pair = param.split("=", 2);
-            if (pair.length == 2) {
-                try {
-                    params.put(URLDecoder.decode(pair[0], StandardCharsets.UTF_8),
-                               URLDecoder.decode(pair[1], StandardCharsets.UTF_8));
-                } catch (Exception ignored) {}
-            }
-        }
-        return params;
-    }
 }

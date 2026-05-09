@@ -24,6 +24,7 @@ Players collect resources, donate them to **altars**, and unlock an ever-growing
 | **Map integrations** | BlueMap, Dynmap, JourneyMap, Xaero's Minimap & World Map |
 | **Discord webhook** | Sends a message on every stage completion |
 | **Recipe locking** | Lock specific item recipes behind configurable stages |
+| **Web dashboard** | Embedded HTTP server with live dashboard and admin panel on configurable port (default 8123) |
 | **Translation system** | All messages are translatable via JSON language files (`en_us`, `fr_fr`, etc.). Language is set in config |
 | **Fully configurable** | All stages, radii and behaviour tunable via JSON |
 
@@ -262,6 +263,41 @@ The integration uses reflection — no additional configuration is needed.
 3. Run `/bq reload`.
 
 A message is sent automatically each time a stage is completed.
+
+---
+
+## Web Dashboard
+
+The mod includes an embedded HTTP server (zero external dependencies) serving a live dashboard and admin panel. Access it at `http://<server-ip>:8123` (configurable).
+
+### Features
+
+| Section | Content |
+|---|---|
+| **Public dashboard** | Stage progress bar, resource checklist with mini-bars, donation leaderboard, altar list, player count, stage timeline — auto-refreshes every 5 seconds |
+| **Admin panel** | Password-protected: one-click buttons for `/bq reload`, `/bq skip`, `/bq reset`, plus a full JSON config editor with save/reload |
+| **Accessibility** | Full ARIA support, keyboard navigation (skip-to-content, focus trap on modals, Escape to close), screen-reader announcements, light/dark auto theme |
+
+### Configuration
+
+```jsonc
+{
+  "dashboard": {
+    "enabled": true,         // Set to false to disable the dashboard
+    "port": 8123,            // HTTP port (must be free)
+    "bindAddress": "127.0.0.1",  // "0.0.0.0" to expose on the network (use with caution)
+    "password": "WmXd2E2Dpo29"   // Auto-generated on first launch, modifiable
+  }
+}
+```
+
+> **Security:** The admin password is randomly generated on first launch and printed once in the server console. Bind to `127.0.0.1` unless you need remote access — if exposed, place it behind a reverse proxy with HTTPS.
+
+### Admin password
+
+- **First launch**: A random 12-character password is generated, printed once in the server log, and persisted in `config/borderquest.json`.
+- **Change it**: Edit the `password` field in the config file and run `/bq reload`.
+- **Reset it**: Delete the `password` field from the config and reload — a new one will be generated.
 
 ---
 

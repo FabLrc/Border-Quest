@@ -3,329 +3,826 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
 <title>Border Quest Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <style>
+/* === Reset === */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#1a1a2e;--card:#16213e;--accent-gold:#ffad1f;--accent-aqua:#00d4aa;--accent-red:#ff4757;--accent-green:#2ed573;--accent-blue:#4a9eff;--text:#e0e0e0;--text-dim:#8892b0;--border:#2a2a4a;--radius:8px;--transition:0.2s ease}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-.container{max-width:900px;margin:0 auto;padding:16px}
-header{display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid var(--border);margin-bottom:20px}
-header h1{font-size:1.4rem;color:var(--accent-gold);font-weight:700}
-.header-right{display:flex;align-items:center;gap:12px}
-#refresh-status{font-size:0.75rem;color:var(--text-dim)}
-#refresh-status.live{color:var(--accent-green)}
-.btn{background:var(--accent-blue);color:#fff;border:none;padding:8px 16px;border-radius:var(--radius);cursor:pointer;font-size:0.85rem;transition:background var(--transition)}
-.btn:hover{filter:brightness(1.15)}
-.btn-danger{background:var(--accent-red)}
-.btn-gold{background:var(--accent-gold);color:#1a1a2e}
-.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:var(--radius);cursor:pointer;font-size:0.8rem}
-.btn-outline:hover{border-color:var(--text-dim)}
-.card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:16px;margin-bottom:16px}
-.card h2{font-size:1rem;color:var(--accent-aqua);margin-bottom:12px;font-weight:600}
-.stage-header{display:flex;align-items:baseline;gap:8px;margin-bottom:4px}
-.stage-header h2{font-size:1.2rem;margin-bottom:0}
-.stage-header .title{color:var(--text);font-size:0.9rem}
-.progress-bar-wrap{background:#0d1117;border-radius:4px;height:20px;overflow:hidden;margin:8px 0}
-.progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent-gold),var(--accent-aqua));transition:width 0.5s ease;border-radius:4px;min-width:4px}
-.progress-text{font-size:0.8rem;color:var(--text-dim);text-align:right}
-.resources{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:12px}
-.resource{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-radius:4px;font-size:0.85rem}
-.resource.done{background:rgba(46,213,115,0.12);border:1px solid rgba(46,213,115,0.3)}
-.resource.pending{background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.2)}
-.resource .name{font-weight:500}
-.resource .check{font-weight:700}
-.resource.done .check{color:var(--accent-green)}
-.resource.pending .check{color:var(--accent-red)}
-.radius-info{font-size:0.85rem;color:var(--text-dim);margin-top:8px}
-.donors{display:flex;flex-direction:column;gap:6px}
-.donor{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:4px;font-size:0.85rem}
-.donor.gold{background:rgba(255,175,31,0.1)}
-.donor.silver{background:rgba(192,192,192,0.06)}
-.donor .rank{font-weight:700;width:28px;text-align:center}
-.donor.gold .rank{color:var(--accent-gold)}
-.donor.silver .rank{color:#c0c0c0}
-.donor .name{flex:1}
-.donor .count{font-weight:600;color:var(--accent-aqua)}
-.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}
-.info-item{padding:8px;border-radius:4px;font-size:0.85rem;background:rgba(255,255,255,0.03)}
-.info-item .label{color:var(--text-dim);font-size:0.75rem}
-.info-item .value{font-weight:600;margin-top:2px}
-.altars{margin-top:8px}
-.altars summary{cursor:pointer;font-size:0.85rem;color:var(--accent-blue)}
-.altar-entry{padding:4px 8px;font-size:0.8rem;color:var(--text-dim)}
-.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:100;align-items:center;justify-content:center}
+
+/* === Variables — Dark === */
+:root{
+  --bg:#0e0c07;--bg2:#161108;--surface:#1e1608;--surface2:#261e0a;
+  --text:#e8d5a3;--text-dim:#9a8b6a;--text-inv:#0e0c07;
+  --border:#5a3d1a;--border-light:#7a5a2a;
+  --gold:#c4872a;--gold-light:#f0b84a;--gold-glow:rgba(196,135,42,0.3);
+  --green:#4a7c45;--green-glow:#6db866;--green-soft:rgba(74,124,69,0.18);
+  --red:#8b2020;--red-light:#c43030;--blue:#2a5a8b;
+  --radius:4px;--shadow:0 4px 24px rgba(0,0,0,0.55);
+  --font-d:'Cinzel',Georgia,serif;--font-b:'Crimson Text',Georgia,serif;
+}
+
+/* === Variables — Light === */
+@media(prefers-color-scheme:light){:root{
+  --bg:#f0e8cc;--bg2:#fffdf5;--surface:#f0e8cc;--surface2:#e8dfc0;
+  --text:#2a1f0a;--text-dim:#6b5a3a;--text-inv:#fffdf5;
+  --border:#b4903a;--border-light:#c4a050;
+  --gold:#8b5e0a;--gold-light:#a06818;--gold-glow:rgba(139,94,10,0.2);
+  --green:#2d5c28;--green-glow:#3a8030;--green-soft:rgba(45,92,40,0.12);
+  --red:#7a1515;--red-light:#a02020;--blue:#1a3d6b;
+  --shadow:0 4px 24px rgba(0,0,0,0.12);
+}}
+
+/* === Base === */
+body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height:100vh;font-size:1.05rem;line-height:1.6}
+
+/* === Accessibility === */
+.skip-link{position:fixed;top:-100%;left:8px;z-index:200;background:var(--gold);color:var(--text-inv);padding:8px 16px;border-radius:0 0 var(--radius) var(--radius);font-family:var(--font-d);font-size:0.7rem;letter-spacing:.06em}
+.skip-link:focus{top:0}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+/* === Header === */
+header{background:var(--bg2);border-bottom:2px solid var(--border);position:sticky;top:0;z-index:50}
+.header-inner{max-width:1120px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:10px 20px}
+.header-brand{display:flex;align-items:center;gap:10px}
+header h1{font-family:var(--font-d);font-size:1.35rem;font-weight:700;color:var(--gold-light);letter-spacing:.1em;text-shadow:0 0 24px var(--gold-glow)}
+.header-right{display:flex;align-items:center;gap:10px}
+#refresh-status{display:flex;align-items:center;gap:7px;font-family:var(--font-d);font-size:0.65rem;letter-spacing:.08em;color:var(--text-dim)}
+.status-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--red);transition:background .5s;flex-shrink:0}
+.status-dot.live{background:var(--green-glow);box-shadow:0 0 8px var(--green-glow);animation:pulse-live 2.5s ease-in-out infinite}
+@keyframes pulse-live{0%,100%{box-shadow:0 0 6px var(--green-glow)}50%{box-shadow:0 0 14px var(--green-glow),0 0 28px rgba(109,184,102,0.4)}}
+@media(prefers-reduced-motion:reduce){.status-dot.live{animation:none}}
+
+/* Language switcher */
+.lang-switcher{display:flex;gap:4px}
+.btn-lang{
+  background:transparent;border:1px solid var(--border);
+  border-radius:var(--radius);cursor:pointer;
+  font-size:1.1rem;line-height:1;padding:4px 7px;
+  opacity:.5;transition:opacity .2s,border-color .2s,transform .15s;
+}
+.btn-lang:hover{opacity:.85;transform:scale(1.08)}
+.btn-lang.active{opacity:1;border-color:var(--gold)}
+.btn-lang:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+/* Admin button */
+.btn-admin{background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:var(--radius);cursor:pointer;font-family:var(--font-d);font-size:0.65rem;letter-spacing:.08em;transition:border-color .2s,color .2s,background .2s}
+.btn-admin:hover{border-color:var(--gold);color:var(--gold);background:rgba(196,135,42,0.07)}
+.btn-admin:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+/* === Hero === */
+.hero{background:var(--bg2);border-bottom:2px solid var(--border);padding:30px 20px 24px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 120% at 50% 120%,rgba(196,135,42,0.07) 0%,transparent 70%);pointer-events:none}
+.hero::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent)}
+.hero-inner{max-width:680px;margin:0 auto;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;position:relative;z-index:1}
+.stage-eyebrow{font-family:var(--font-d);font-size:0.6rem;letter-spacing:.25em;text-transform:uppercase;color:var(--text-dim)}
+.stage-display{display:flex;align-items:baseline;gap:6px;font-family:var(--font-d);font-weight:900;color:var(--gold-light);line-height:1;text-shadow:0 0 32px var(--gold-glow)}
+#stage-num{font-size:3.2rem}
+.stage-sep{font-size:1.6rem;color:var(--border-light);font-weight:400}
+.stage-total-num{font-size:1.8rem;color:var(--text-dim);font-weight:600}
+.stage-title-hero{font-family:var(--font-b);font-style:italic;font-size:1.25rem;color:var(--text-dim);letter-spacing:.02em}
+.progress-section{width:100%;max-width:560px}
+.progress-pct-row{display:flex;justify-content:flex-end;font-family:var(--font-d);font-size:0.7rem;letter-spacing:.1em;color:var(--gold);margin-bottom:5px}
+.progress-track{background:rgba(0,0,0,0.5);border:1px solid var(--border);height:26px;border-radius:2px;overflow:hidden;position:relative;box-shadow:inset 0 2px 5px rgba(0,0,0,0.7)}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--gold) 0%,var(--gold-light) 55%,var(--green-glow) 100%);transition:width .9s cubic-bezier(.4,0,.2,1);border-radius:1px;min-width:4px;position:relative}
+.progress-fill::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,0.18) 0%,transparent 55%,rgba(0,0,0,0.08) 100%)}
+@media(prefers-reduced-motion:reduce){.progress-fill{transition:none}}
+.radius-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:2px}
+.radius-badge{display:flex;flex-direction:column;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:7px 16px;gap:2px}
+.rb-label{font-family:var(--font-d);font-size:0.5rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim)}
+.rb-val{font-family:var(--font-d);font-size:0.9rem;color:var(--gold-light);font-weight:700}
+.radius-arrow{color:var(--border-light);font-size:1.1rem;line-height:1}
+.done-banner{font-family:var(--font-d);font-size:1.2rem;font-weight:700;letter-spacing:.18em;color:var(--gold-light);text-shadow:0 0 30px var(--gold-glow),0 0 60px rgba(240,184,74,0.3);animation:done-pulse 2s ease-in-out infinite;padding:12px 0}
+@keyframes done-pulse{0%,100%{text-shadow:0 0 20px var(--gold-glow)}50%{text-shadow:0 0 40px var(--gold-glow),0 0 80px rgba(240,184,74,0.4)}}
+@media(prefers-reduced-motion:reduce){.done-banner{animation:none}}
+
+/* === Content Layout === */
+.content-wrapper{max-width:1120px;margin:0 auto;padding:18px 20px 40px}
+.content-grid{display:flex;flex-direction:column;gap:16px}
+@media(min-width:760px){.content-grid{display:grid;grid-template-columns:1fr 320px;gap:16px;align-items:start}}
+@media(min-width:960px){.content-grid{grid-template-columns:1fr 340px}}
+.col-main,.col-side{display:flex;flex-direction:column;gap:16px}
+
+/* === Cards === */
+.card{background:var(--bg2);border:1px solid var(--border);border-top:2px solid var(--gold);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);animation:fadein .4s ease both}
+@keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.card{animation:none}}
+#resources-card{border-top-color:var(--gold)}
+#timeline-card{border-top-color:var(--green)}
+#leaderboard-card{border-top-color:var(--gold-light)}
+#info-card{border-top-color:var(--blue)}
+.card-title{font-family:var(--font-d);font-size:0.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.card-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
+.card-icon{font-size:0.9rem}
+
+/* === Resources === */
+.resources{list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:8px}
+.resource{padding:10px 12px;border-radius:var(--radius);display:flex;flex-direction:column;gap:6px;border:1px solid var(--border);background:var(--surface)}
+.resource.done{background:var(--green-soft);border-color:rgba(74,124,69,0.45)}
+.resource .top{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.resource .name{font-family:var(--font-d);font-size:0.62rem;letter-spacing:.04em;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.resource .check{font-size:0.82rem;flex-shrink:0}
+.resource.done .check{color:var(--green-glow)}.resource.pending .check{color:var(--gold)}
+.resource .mini-bar{height:6px;background:rgba(0,0,0,0.4);border-radius:1px;overflow:hidden}
+.resource .mini-fill{height:100%;border-radius:1px;transition:width .6s ease}
+.resource.done .mini-fill{background:var(--green)}.resource.pending .mini-fill{background:var(--gold)}
+@media(prefers-reduced-motion:reduce){.resource .mini-fill{transition:none}}
+
+/* === Timeline === */
+.timeline-scroll{overflow-x:auto;padding:6px 2px 14px;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.timeline{display:flex;align-items:flex-start;gap:0}
+.tl-item{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:80px}
+.tl-node{width:14px;height:14px;border-radius:50%;border:2px solid var(--border);position:relative;z-index:1;flex-shrink:0}
+.tl-node.done{background:var(--green);border-color:var(--green)}
+.tl-node.current{background:var(--gold);border-color:var(--gold-light);box-shadow:0 0 10px var(--gold-glow);animation:pulse-dot 2.2s ease-in-out infinite}
+@keyframes pulse-dot{0%,100%{box-shadow:0 0 6px var(--gold-glow)}50%{box-shadow:0 0 16px var(--gold-glow),0 0 28px rgba(196,135,42,0.25)}}
+@media(prefers-reduced-motion:reduce){.tl-node.current{animation:none}}
+.tl-connector{width:20px;height:2px;flex-shrink:0;margin-top:6px;align-self:flex-start}
+.tl-connector.done{background:var(--green)}.tl-connector.future{background:var(--border)}
+.tl-label{font-size:0.58rem;text-align:center;margin-top:6px;max-width:74px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3}
+.tl-label.done{color:var(--green-glow)}
+.tl-label.current{color:var(--gold-light);font-family:var(--font-d);font-size:0.56rem;letter-spacing:.04em}
+
+/* === Leaderboard === */
+.podium{display:flex;gap:8px;margin-bottom:12px}
+.podium-slot{flex:1;display:flex;flex-direction:column;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 6px;gap:5px;text-align:center;min-width:0}
+.podium-slot.first{border-color:rgba(240,184,74,0.5);background:rgba(196,135,42,0.08)}
+.podium-slot.second{border-color:rgba(192,192,192,0.3);background:rgba(200,200,200,0.04)}
+.podium-slot.third{border-color:rgba(160,120,70,0.3);background:rgba(160,120,70,0.04)}
+.podium-slot .medal{font-size:1.5rem;line-height:1}
+.podium-slot .pname{font-family:var(--font-d);font-size:0.58rem;letter-spacing:.03em;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%}
+.podium-slot .pcount{font-family:var(--font-d);font-size:0.78rem;color:var(--gold-light);font-weight:700}
+.donors{list-style:none;display:flex;flex-direction:column;gap:2px}
+.donor{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:2px;font-size:0.9rem}
+.donor:nth-child(odd){background:rgba(255,255,255,0.025)}
+.donor .rank{font-family:var(--font-d);font-size:0.6rem;width:26px;text-align:center;flex-shrink:0;color:var(--text-dim)}
+.donor .dname{flex:1;word-break:break-word;color:var(--text)}
+.donor .count{font-family:var(--font-d);font-size:0.75rem;color:var(--gold);font-weight:600;flex-shrink:0}
+.empty-state{text-align:center;padding:20px 10px;color:var(--text-dim);font-size:0.95rem}
+.empty-state .empty-icon{font-size:2rem;display:block;margin-bottom:8px}
+.empty-state .empty-hint{font-size:0.82rem;margin-top:5px;opacity:.7}
+
+/* === Server Info === */
+.stat-chips{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 6px;text-align:center}
+.sc-label{font-family:var(--font-d);font-size:0.5rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px}
+.sc-val{font-family:var(--font-d);font-size:0.88rem;color:var(--text);font-weight:600}
+details{margin-top:2px}
+details summary{cursor:pointer;list-style:none;font-family:var(--font-d);font-size:0.62rem;letter-spacing:.08em;color:var(--gold);padding:6px 0;display:flex;align-items:center;gap:6px;user-select:none}
+details summary::-webkit-details-marker{display:none}
+details summary::before{content:'▶';font-size:0.55rem;transition:transform .2s;display:inline-block;color:var(--text-dim)}
+details[open] summary::before{transform:rotate(90deg)}
+details summary:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:2px}
+.altar-entry{padding:4px 12px;font-size:0.87rem;color:var(--text-dim);border-left:2px solid var(--border);margin:3px 0 3px 4px}
+
+/* === Buttons === */
+.btn{display:inline-flex;align-items:center;gap:6px;background:var(--blue);color:var(--text);border:1px solid transparent;padding:8px 16px;border-radius:var(--radius);cursor:pointer;font-family:var(--font-d);font-size:0.65rem;letter-spacing:.07em;transition:filter .2s,transform .1s}
+.btn:hover{filter:brightness(1.2)}.btn:active{transform:scale(0.97)}
+.btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.btn-danger{background:var(--red)}.btn-gold{background:var(--gold);color:var(--text-inv)}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 12px;border-radius:var(--radius);cursor:pointer;font-family:var(--font-d);font-size:0.65rem;letter-spacing:.06em;transition:border-color .2s,color .2s}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold)}
+.btn-outline:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+/* === Skeleton === */
+@keyframes shimmer{0%{background-position:-300px 0}100%{background-position:calc(300px + 100%) 0}}
+@media(prefers-reduced-motion:reduce){@keyframes shimmer{from{background-position:0}to{background-position:0}}}
+.skeleton{background:linear-gradient(90deg,var(--surface) 25%,var(--surface2) 50%,var(--surface) 75%);background-size:300px 100%;animation:shimmer 1.8s infinite;border-radius:var(--radius)}
+.skel-bar{height:24px;width:100%;margin:6px 0}.skel-text{height:14px;width:65%;margin:5px 0}.skel-card{height:72px;width:100%;margin:4px 0}
+
+/* === Toast === */
+.toast-container{position:fixed;top:14px;right:14px;z-index:300;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{pointer-events:auto;background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:var(--radius);padding:10px 14px;font-size:0.9rem;font-family:var(--font-b);box-shadow:var(--shadow);max-width:340px;display:flex;align-items:center;gap:8px;animation:slideIn .3s ease;transition:opacity .3s}
+.toast.success{border-left-color:var(--green-glow)}.toast.error{border-left-color:var(--red-light)}.toast.info{border-left-color:var(--gold)}
+.toast-icon{font-size:0.9rem;flex-shrink:0}
+@keyframes slideIn{from{transform:translateX(120%);opacity:0}to{transform:none;opacity:1}}
+@media(prefers-reduced-motion:reduce){.toast{animation:none}}
+
+/* === Modal === */
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.72);z-index:100;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
 .modal.open{display:flex}
-.modal-content{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;width:90%;max-width:600px;max-height:90vh;overflow-y:auto}
-.modal-content h2{font-size:1.1rem;color:var(--accent-gold);margin-bottom:16px}
-.modal-content h3{font-size:0.95rem;color:var(--accent-aqua);margin:16px 0 8px}
-.form-group{margin-bottom:12px}
-.form-group label{display:block;font-size:0.8rem;color:var(--text-dim);margin-bottom:4px}
-.form-group input,.form-group textarea{width:100%;background:#0d1117;border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:4px;font-size:0.9rem;font-family:monospace}
-.form-group textarea{min-height:200px;font-size:0.8rem;resize:vertical}
-.admin-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
-.feedback{margin-top:8px;padding:8px 12px;border-radius:4px;font-size:0.85rem;display:none}
-.feedback.success{display:block;background:rgba(46,213,115,0.15);color:var(--accent-green);border:1px solid rgba(46,213,115,0.3)}
-.feedback.error{display:block;background:rgba(255,71,87,0.15);color:var(--accent-red);border:1px solid rgba(255,71,87,0.3)}
-.login-error{color:var(--accent-red);font-size:0.85rem;margin-top:8px;display:none}
-@media(max-width:600px){.resources{grid-template-columns:1fr}.admin-actions{flex-direction:column}}
+.modal-content{background:var(--bg2);border:1px solid var(--border);border-top:2px solid var(--gold);border-radius:var(--radius);padding:26px;width:90%;max-width:560px;max-height:85vh;overflow-y:auto;box-shadow:0 8px 48px rgba(0,0,0,0.65)}
+.modal-content h2{font-family:var(--font-d);font-size:0.9rem;letter-spacing:.12em;color:var(--gold-light);margin-bottom:20px}
+.modal-content h3{font-family:var(--font-d);font-size:0.72rem;letter-spacing:.1em;color:var(--gold);margin:18px 0 10px;text-transform:uppercase}
+.modal-content label{display:block;font-family:var(--font-d);font-size:0.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px}
+.modal-content input,.modal-content textarea{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:var(--radius);font-size:0.9rem;font-family:monospace;transition:border-color .2s}
+.modal-content input:focus,.modal-content textarea:focus{outline:none;border-color:var(--gold)}
+.modal-content textarea{min-height:200px;font-size:0.8rem;resize:vertical}
+.admin-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.login-error{color:var(--red-light);display:none;margin-top:10px;font-family:var(--font-d);font-size:0.62rem;letter-spacing:.06em}
+
+/* === Confirm Dialog === */
+.confirm-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.68);z-index:150;align-items:center;justify-content:center}
+.confirm-overlay.open{display:flex}
+.confirm-box{background:var(--bg2);border:1px solid var(--border);border-top:2px solid var(--red-light);border-radius:var(--radius);padding:26px;max-width:400px;width:90%;box-shadow:var(--shadow)}
+.confirm-box h3{font-family:var(--font-d);font-size:0.78rem;letter-spacing:.1em;color:var(--red-light);margin-bottom:10px}
+.confirm-box p{font-size:0.95rem;color:var(--text-dim);margin-bottom:20px}
+.confirm-actions{display:flex;gap:8px;justify-content:flex-end}
+
+/* === Responsive === */
+@media(max-width:759px){.resources{grid-template-columns:1fr 1fr}.admin-actions{flex-direction:column}}
+@media(max-width:540px){.resources{grid-template-columns:1fr}.stat-chips{grid-template-columns:1fr 1fr 1fr}.podium{gap:6px}}
+@media(max-width:420px){.hero{padding:22px 14px 18px}#stage-num{font-size:2.4rem}.stage-total-num{font-size:1.4rem}.content-wrapper{padding:14px 14px 32px}header h1{font-size:1.1rem}.stat-chips{grid-template-columns:1fr}.podium{flex-direction:column}}
 </style>
 </head>
 <body>
-<div class="container">
-<header>
-<h1>&#9733; Border Quest &#9733;</h1>
-<div class="header-right">
-<span id="refresh-status">&#9679; Loading...</span>
-<button class="btn-outline" onclick="toggleAdmin()">&#9881; Admin</button>
+<a href="#main" class="skip-link" data-i18n="borderquest.dashboard.skip_link">Skip to content</a>
+
+<!-- ========== Header ========== -->
+<header role="banner">
+<div class="header-inner">
+  <div class="header-brand">
+    <h1>⚔ Border Quest</h1>
+  </div>
+  <div class="header-right">
+    <div id="refresh-status" role="status" aria-live="polite" aria-atomic="true">
+      <span class="status-dot" id="status-dot" aria-hidden="true"></span>
+      <span id="status-text">-</span>
+      <span class="sr-only" id="status-sr"></span>
+    </div>
+    <div class="lang-switcher" role="group" aria-label="Language">
+      <button class="btn-lang" data-locale="en_us" title="English">🇬🇧</button>
+      <button class="btn-lang" data-locale="fr_fr" title="Français">🇫🇷</button>
+    </div>
+    <button class="btn-admin" id="admin-btn" aria-label="Open admin panel">
+      ⚙ <span data-i18n="borderquest.dashboard.admin_btn">Admin</span>
+    </button>
+  </div>
 </div>
 </header>
 
-<div id="content">
-<div class="card" id="stage-card">
-<div class="stage-header">
-<h2>Stage <span id="stage-num">-</span>/<span id="stage-total">-</span></h2>
-<span class="title" id="stage-title">-</span>
+<!-- ========== Hero ========== -->
+<section class="hero" id="main" aria-labelledby="stage-heading">
+<div class="hero-inner">
+  <div class="stage-eyebrow" data-i18n="borderquest.dashboard.current_stage">Current Quest Stage</div>
+  <div class="stage-display" id="stage-heading" aria-label="Stage progress">
+    <span id="stage-num" aria-label="current stage">-</span>
+    <span class="stage-sep" aria-hidden="true">/</span>
+    <span class="stage-total-num" id="stage-total" aria-label="total stages">-</span>
+  </div>
+  <div class="stage-title-hero" id="stage-title">-</div>
+  <div class="progress-section">
+    <div class="progress-pct-row">
+      <span id="progress-text" aria-live="polite">-</span>
+    </div>
+    <div role="progressbar" id="progress-bar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Stage completion progress" tabindex="0">
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+  <div class="radius-row" id="radius-info">
+    <div class="radius-badge">
+      <span class="rb-label" data-i18n="borderquest.dashboard.current_radius">Current Radius</span>
+      <span class="rb-val" id="radius-current">-</span>
+    </div>
+    <div class="radius-arrow" aria-hidden="true">→</div>
+    <div class="radius-badge">
+      <span class="rb-label" data-i18n="borderquest.dashboard.next_radius">Next Radius</span>
+      <span class="rb-val" id="radius-next">-</span>
+    </div>
+  </div>
+  <div class="done-banner" id="done-banner" style="display:none" data-i18n="borderquest.dashboard.barrier_fallen">⚔ THE BARRIER HAS FALLEN! ⚔</div>
 </div>
-<div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-bar" style="width:0%"></div></div>
-<div class="progress-text" id="progress-text">0% complete</div>
-<div class="radius-info" id="radius-info">Radius: - blocks</div>
-<div class="resources" id="resources"></div>
-<div id="done-message" style="display:none;text-align:center;padding:20px;color:var(--accent-gold);font-weight:700;font-size:1.1rem">
-&#9733; THE BARRIER HAS FALLEN! &#9733;
+</section>
+
+<!-- ========== Main Content ========== -->
+<div class="content-wrapper">
+<div class="content-grid">
+
+  <div class="col-main">
+    <section class="card" id="resources-card" aria-labelledby="resources-heading">
+      <h2 class="card-title" id="resources-heading">
+        <span class="card-icon" aria-hidden="true">📦</span>
+        <span data-i18n="borderquest.dashboard.required_resources">Required Resources</span>
+      </h2>
+      <ul class="resources" id="resources" aria-label="Required resources" role="list"></ul>
+    </section>
+
+    <section class="card" id="timeline-card" aria-labelledby="timeline-heading">
+      <h2 class="card-title" id="timeline-heading">
+        <span class="card-icon" aria-hidden="true">📜</span>
+        <span data-i18n="borderquest.dashboard.stage_journey">Stage Journey</span>
+      </h2>
+      <div class="timeline-scroll">
+        <div id="timeline" class="timeline"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="col-side">
+    <section class="card" id="leaderboard-card" aria-labelledby="leaderboard-heading">
+      <h2 class="card-title" id="leaderboard-heading">
+        <span class="card-icon" aria-hidden="true">🏆</span>
+        <span data-i18n="borderquest.dashboard.top_donors">Top Donors</span>
+      </h2>
+      <div id="podium" class="podium" role="list" aria-label="Top 3 donors"></div>
+      <ol class="donors" id="donors" aria-label="Donation leaderboard" role="list"></ol>
+    </section>
+
+    <section class="card" id="info-card" aria-labelledby="info-heading">
+      <h2 class="card-title" id="info-heading">
+        <span class="card-icon" aria-hidden="true">🌍</span>
+        <span data-i18n="borderquest.dashboard.server_info">Server Info</span>
+      </h2>
+      <div class="stat-chips">
+        <div class="stat-chip">
+          <div class="sc-label" data-i18n="borderquest.dashboard.players">Players</div>
+          <div class="sc-val" id="players-online" aria-live="polite">-</div>
+        </div>
+        <div class="stat-chip">
+          <div class="sc-label" data-i18n="borderquest.dashboard.center">Center</div>
+          <div class="sc-val" id="border-center">-</div>
+        </div>
+        <div class="stat-chip">
+          <div class="sc-label" data-i18n="borderquest.dashboard.altars">Altars</div>
+          <div class="sc-val" id="altar-count">-</div>
+        </div>
+      </div>
+      <details id="altars-details">
+        <summary id="altars-summary">-</summary>
+        <div id="altars-list"></div>
+      </details>
+    </section>
+  </div>
+
 </div>
 </div>
 
-<div class="card" id="leaderboard-card">
-<h2>&#127942; Top Donors</h2>
-<div class="donors" id="donors"><div style="color:var(--text-dim);font-size:0.85rem">No donations yet.</div></div>
-</div>
+<div class="toast-container" id="toast-container" aria-live="polite" aria-atomic="false"></div>
 
-<div class="card" id="info-card">
-<h2>&#8505; Server Info</h2>
-<div class="info-grid">
-<div class="info-item"><div class="label">Players Online</div><div class="value" id="players-online">-</div></div>
-<div class="info-item"><div class="label">Border Center</div><div class="value" id="border-center">-</div></div>
-<div class="info-item"><div class="label">Altars</div><div class="value" id="altar-count">-</div></div>
-</div>
-<details class="altars" id="altars-details">
-<summary>Show altar list</summary>
-<div id="altars-list"></div>
-</details>
-</div>
+<div class="confirm-overlay" id="confirm-overlay" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-desc">
+<div class="confirm-box">
+  <h3 id="confirm-title" data-i18n="borderquest.dashboard.confirm_title">⚠ Confirm Action</h3>
+  <p id="confirm-desc"></p>
+  <div class="confirm-actions">
+    <button class="btn-outline" id="confirm-cancel" data-i18n="borderquest.dashboard.confirm_cancel">Cancel</button>
+    <button class="btn btn-danger" id="confirm-ok" data-i18n="borderquest.dashboard.confirm_ok">Confirm</button>
+  </div>
 </div>
 </div>
 
-<div class="modal" id="admin-modal">
+<div class="modal" id="admin-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
 <div class="modal-content">
-<div id="admin-login-view">
-<h2>&#128274; Admin Login</h2>
-<div class="form-group">
-<label>Password (check server console on first start)</label>
-<input type="password" id="admin-password" placeholder="Dashboard admin password" onkeydown="if(event.key==='Enter')adminLogin()">
-</div>
-<button class="btn btn-gold" onclick="adminLogin()">Login</button>
-<div class="login-error" id="login-error">Invalid password</div>
-</div>
-<div id="admin-panel-view" style="display:none">
-<h2>&#9881; Admin Panel</h2>
-<div class="admin-actions">
-<button class="btn" onclick="adminAction('reload')">&#128260; Reload Config</button>
-<button class="btn" onclick="adminAction('skip')">&#9197; Skip Stage</button>
-<button class="btn btn-danger" onclick="adminAction('reset')">&#8635; Reset Quest</button>
-</div>
-<h3>Config Editor</h3>
-<div class="form-group">
-<textarea id="config-editor" placeholder="Loading config..."></textarea>
-</div>
-<div class="admin-actions">
-<button class="btn" onclick="saveConfig()">&#128190; Save Config</button>
-<button class="btn btn-outline" onclick="loadConfig()">&#128194; Reload from file</button>
-</div>
-<div class="feedback" id="admin-feedback"></div>
-<button class="btn-outline" onclick="adminLogout()" style="margin-top:8px">Logout</button>
-</div>
+  <div id="admin-login-view">
+    <h2 id="modal-title" data-i18n="borderquest.dashboard.admin_login_title">Admin Login</h2>
+    <label for="admin-password" data-i18n="borderquest.dashboard.admin_password_label">Password (check server console on first start)</label>
+    <input type="password" id="admin-password" autocomplete="current-password" placeholder="••••••••">
+    <button class="btn btn-gold" id="admin-login-btn" style="margin-top:14px" data-i18n="borderquest.dashboard.admin_login_btn">Login</button>
+    <div class="login-error" id="login-error" data-i18n="borderquest.dashboard.admin_login_error">Invalid password</div>
+  </div>
+  <div id="admin-panel-view" style="display:none">
+    <h2 id="modal-title-panel" data-i18n="borderquest.dashboard.admin_panel_title">Admin Panel</h2>
+    <div class="admin-actions">
+      <button class="btn" id="action-reload" aria-label="Reload configuration from file">🔄 <span data-i18n="borderquest.dashboard.admin_reload">Reload Config</span></button>
+      <button class="btn" id="action-skip" aria-label="Skip to next stage">⏭ <span data-i18n="borderquest.dashboard.admin_skip">Skip Stage</span></button>
+      <button class="btn btn-danger" id="action-reset" aria-label="Reset all progress to stage 1">↺ <span data-i18n="borderquest.dashboard.admin_reset">Reset Quest</span></button>
+    </div>
+    <h3 data-i18n="borderquest.dashboard.admin_config">Config Editor</h3>
+    <label for="config-editor" class="sr-only">Config JSON</label>
+    <textarea id="config-editor" placeholder="Loading config..." aria-label="Config JSON editor"></textarea>
+    <div class="admin-actions" style="margin-top:10px">
+      <button class="btn" id="action-save-config">💾 <span data-i18n="borderquest.dashboard.admin_save">Save Config</span></button>
+      <button class="btn-outline" id="action-load-config">📂 <span data-i18n="borderquest.dashboard.admin_reload_file">Reload from file</span></button>
+    </div>
+    <button class="btn-outline" id="admin-logout-btn" style="margin-top:14px" data-i18n="borderquest.dashboard.admin_logout">Logout</button>
+  </div>
 </div>
 </div>
 
 <script>
-// --- State ---
-let adminPassword = sessionStorage.getItem('bq_admin_password') || '';
-if (adminPassword) document.getElementById('admin-password').value = adminPassword;
-let lastStatus = null;
+/* ============================================================
+   i18n
+   ============================================================ */
+const SUPPORTED_LOCALES=['en_us','fr_fr'];
+let locale=localStorage.getItem('bq_lang')||'en_us';
+if(!SUPPORTED_LOCALES.includes(locale))locale='en_us';
+let strings={};
 
-// --- Polling ---
-async function fetchJSON(url) {
-try{const r=await fetch(url);if(!r.ok)return null;return await r.json()}
+function t(key,...args){
+  let s=strings[key]||key;
+  s=s.replace(/§./g,'');
+  let i=0;
+  s=s.replace(/%[sd]/g,()=>args[i++]!==undefined?String(args[i-1]):'');
+  return s;
+}
+
+async function loadStrings(){
+  try{
+    const r=await fetch('/api/lang?locale='+locale);
+    if(r.ok)strings=await r.json();
+  }catch(e){}
+}
+
+function applyStrings(){
+  document.documentElement.lang=locale.replace('_','-');
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    el.textContent=t(el.dataset.i18n);
+  });
+  updateLangButtons();
+}
+
+function updateLangButtons(){
+  document.querySelectorAll('.btn-lang').forEach(btn=>{
+    btn.classList.toggle('active',btn.dataset.locale===locale);
+  });
+}
+
+document.querySelectorAll('.btn-lang').forEach(btn=>{
+  btn.addEventListener('click',async()=>{
+    if(btn.dataset.locale===locale)return;
+    locale=btn.dataset.locale;
+    localStorage.setItem('bq_lang',locale);
+    await loadStrings();
+    applyStrings();
+    rerenderCached();
+  });
+});
+
+function rerenderCached(){
+  if(lastStatus)renderStatus(lastStatus);
+  else setRefreshStatus(isConnected);
+  if(lastDonors!==null)renderLeaderboard(lastDonors);
+  if(lastAltars!==null)renderAltars(lastAltars);
+  if(lastStages&&lastStatus)renderTimeline(lastStages,lastStatus.stageZeroBased);
+}
+
+/* ============================================================
+   Helpers
+   ============================================================ */
+function escapeHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/`/g,'&#96;')}
+function friendlyName(id){return id.replace('minecraft:','').split('_').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ')}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+
+/* ============================================================
+   Fetch with AbortController + retry
+   ============================================================ */
+let pollSignal=null;
+function newPollSignal(){if(pollSignal)try{pollSignal.abort()}catch(e){}const c=new AbortController();pollSignal=c.signal;return c}
+
+async function fetchJSON(url,options){
+try{const r=await fetch(url,{signal:pollSignal,...options});if(!r.ok)return null;return await r.json()}
 catch(e){return null}
 }
 
-function setRefreshStatus(ok) {
-const el=document.getElementById('refresh-status');
-el.textContent=ok?'&#9679; Live':'&#9679; Offline';
-el.style.color=ok?'var(--accent-green)':'var(--accent-red)';
+async function fetchWithRetry(url,opts,retries=2){
+for(let i=0;i<=retries;i++){
+try{const r=await fetch(url,{signal:pollSignal,...opts});if(r.ok)return await r.json()}
+catch(e){if(e.name==='AbortError')return null}
+if(i<retries)await sleep(1500);
+}
+return null;
 }
 
-async function poll() {
-const status=await fetchJSON('/api/status');
+/* ============================================================
+   State
+   ============================================================ */
+let adminPassword=sessionStorage.getItem('bq_admin_password')||'';
+let lastStatus=null;
+let lastDonors=null;
+let lastAltars=null;
+let lastStages=null;
+let isConnected=false;
+let adminTimeout=null;
+const ADMIN_TTL=30*60*1000;
+let toastCounter=0;
+
+/* ============================================================
+   Skeleton
+   ============================================================ */
+function showSkeleton(){
+document.getElementById('resources').innerHTML=
+'<li class="skeleton skel-card"></li><li class="skeleton skel-card"></li><li class="skeleton skel-card"></li>';
+document.getElementById('donors').innerHTML=
+'<li class="skeleton skel-card"></li><li class="skeleton skel-card"></li><li class="skeleton skel-card"></li>';
+document.getElementById('podium').innerHTML='';
+}
+
+/* ============================================================
+   Toast
+   ============================================================ */
+const TOAST_ICONS={success:'✓',error:'✗',info:'📜'};
+function showToast(msg,type='info'){
+const c=document.getElementById('toast-container');
+const id='toast-'+(++toastCounter);
+const el=document.createElement('div');
+el.className='toast '+type;el.id=id;el.setAttribute('role','alert');
+const icon=document.createElement('span');icon.className='toast-icon';icon.setAttribute('aria-hidden','true');icon.textContent=TOAST_ICONS[type]||'';
+el.appendChild(icon);
+const txt=document.createElement('span');txt.textContent=msg;el.appendChild(txt);
+c.appendChild(el);
+setTimeout(()=>{const e=document.getElementById(id);if(e){e.style.opacity='0';setTimeout(()=>e.remove(),300)}},4000);
+}
+
+/* ============================================================
+   Render: Status
+   ============================================================ */
+function renderStatus(status){
 if(!status){setRefreshStatus(false);return}
-setRefreshStatus(true);
-lastStatus=status;
+setRefreshStatus(true);lastStatus=status;
 
 document.getElementById('stage-num').textContent=status.stage;
+document.getElementById('stage-num').setAttribute('aria-label','Stage '+status.stage);
 document.getElementById('stage-total').textContent=status.totalStages;
 document.getElementById('stage-title').textContent=status.title;
 
+const doneBanner=document.getElementById('done-banner');
 if(status.isLastStage){
-document.getElementById('done-message').style.display='block';
-document.getElementById('progress-bar').style.width='100%';
-document.getElementById('progress-text').textContent='COMPLETE!';
-document.getElementById('radius-info').textContent='Radius: unlimited';
+doneBanner.style.display='block';
+document.getElementById('progress-fill').style.width='100%';
+document.getElementById('progress-text').textContent=t('borderquest.dashboard.complete');
+document.getElementById('radius-current').textContent=t('borderquest.dashboard.unlimited');
+document.getElementById('radius-next').textContent='';
+document.getElementById('radius-info').querySelector('.radius-arrow').style.display='none';
 document.getElementById('resources').innerHTML='';
-}else{
-document.getElementById('done-message').style.display='none';
+document.getElementById('players-online').textContent=status.playersOnline;
+document.getElementById('border-center').textContent=Math.round(status.centerX)+', '+Math.round(status.centerZ);
+document.getElementById('progress-bar').setAttribute('aria-valuenow','100');
+return;
+}
+doneBanner.style.display='none';
+document.getElementById('radius-info').querySelector('.radius-arrow').style.display='';
+
 let totalSubmitted=0,totalRequired=0;
 status.resources.forEach(r=>{totalSubmitted+=Math.min(r.submitted,r.required);totalRequired+=r.required});
 const pct=totalRequired>0?Math.round(totalSubmitted/totalRequired*100):0;
-document.getElementById('progress-bar').style.width=pct+'%';
-document.getElementById('progress-text').textContent=pct+'% complete';
-document.getElementById('radius-info').textContent=
-'Radius: '+status.radius+' &#8594; '+status.nextRadius+' blocks';
+document.getElementById('progress-fill').style.width=pct+'%';
+document.getElementById('progress-text').textContent=pct+'%';
+document.getElementById('progress-bar').setAttribute('aria-valuenow',String(pct));
+document.getElementById('radius-current').textContent=status.radius+' blk';
+document.getElementById('radius-next').textContent=status.nextRadius+' blk';
 
 let html='';
 status.resources.forEach(r=>{
 const cls=r.done?'done':'pending';
-const ck=r.done?'&#10003;':'&#10007;';
-html+='<div class="resource '+cls+'"><span class="name">'+r.name+'</span><span class="check">'+ck+' '+r.submitted+'/'+r.required+'</span></div>';
+const ck=r.done?'✓':'✗';
+const miniPct=r.required>0?Math.round(Math.min(r.submitted,r.required)/r.required*100):0;
+html+='<li class="resource '+cls+'" role="listitem">'
++'<div class="top"><span class="name">'+escapeHtml(friendlyName(r.id))+'</span>'
++'<span class="check">'+ck+' '+r.submitted+'/'+r.required+'</span></div>'
++'<div class="mini-bar"><div class="mini-fill" style="width:'+miniPct+'%"></div></div></li>';
 });
 document.getElementById('resources').innerHTML=html;
-}
-
 document.getElementById('players-online').textContent=status.playersOnline;
 document.getElementById('border-center').textContent=Math.round(status.centerX)+', '+Math.round(status.centerZ);
 }
 
-async function pollLeaderboard() {
-const data=await fetchJSON('/api/leaderboard');
+/* ============================================================
+   Render: Leaderboard
+   ============================================================ */
+function renderLeaderboard(data){
+lastDonors=data;
+const podiumEl=document.getElementById('podium');
+const donorsEl=document.getElementById('donors');
 if(!data||!data.donors||data.donors.length===0){
-document.getElementById('donors').innerHTML='<div style="color:var(--text-dim);font-size:0.85rem">No donations yet.</div>';
+podiumEl.innerHTML='';
+donorsEl.innerHTML='<li class="empty-state" role="listitem"><span class="empty-icon" aria-hidden="true">🏹</span>'
++escapeHtml(t('borderquest.dashboard.no_donations'))
++'<div class="empty-hint">'+escapeHtml(t('borderquest.dashboard.no_donations_hint'))+'</div></li>';
 return;
 }
-let html='';
-data.donors.forEach((d,i)=>{
-const cls=i===0?'gold':i===1?'silver':'';
-html+='<div class="donor '+cls+'"><span class="rank">#'+d.rank+'</span><span class="name">'+d.name+'</span><span class="count">'+d.count+'</span></div>';
+const medals=['🥇','🥈','🥉'];
+const podiumCls=['first','second','third'];
+const top3=data.donors.slice(0,3);
+let podiumHtml='';
+top3.forEach((d,i)=>{
+podiumHtml+='<div class="podium-slot '+podiumCls[i]+'" role="listitem">'
++'<span class="medal" aria-label="Rank '+(i+1)+'">'+medals[i]+'</span>'
++'<span class="pname">'+escapeHtml(d.name)+'</span>'
++'<span class="pcount">'+d.count+'</span></div>';
 });
-document.getElementById('donors').innerHTML=html;
+podiumEl.innerHTML=podiumHtml;
+const rest=data.donors.slice(3);
+if(!rest.length){donorsEl.innerHTML='';return}
+donorsEl.innerHTML=rest.map(d=>
+'<li class="donor" role="listitem"><span class="rank">#'+d.rank+'</span><span class="dname">'+escapeHtml(d.name)+'</span><span class="count">'+d.count+'</span></li>'
+).join('');
 }
 
-async function pollAltars() {
-const data=await fetchJSON('/api/altars');
+/* ============================================================
+   Render: Altars
+   ============================================================ */
+function renderAltars(data){
+lastAltars=data;
 if(!data)return;
 document.getElementById('altar-count').textContent=data.count;
+const summary=document.getElementById('altars-summary');
 if(data.altars&&data.altars.length>0){
-let html='';
-data.altars.forEach(a=>{
-const name=a.name?escapeHtml(a.name)+' at ':'';
-html+='<div class="altar-entry">&#128205; '+name+'('+a.x+', '+a.y+', '+a.z+')</div>';
-});
-document.getElementById('altars-list').innerHTML=html;
+document.getElementById('altars-list').innerHTML=data.altars.map(a=>{
+const label=a.name?escapeHtml(a.name)+' — ':'';
+return '<div class="altar-entry">📍 '+label+'('+a.x+', '+a.y+', '+a.z+')</div>';
+}).join('');
+summary.textContent=t('borderquest.dashboard.altar_list',data.count);
 }else{
-document.getElementById('altars-list').innerHTML='<div class="altar-entry">No altars registered.</div>';
+document.getElementById('altars-list').innerHTML='<div class="altar-entry">'+escapeHtml(t('borderquest.dashboard.altar_empty'))+'</div>';
+summary.textContent=t('borderquest.dashboard.altar_list',0);
 }
 }
 
-function escapeHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+/* ============================================================
+   Render: Timeline
+   ============================================================ */
+function renderTimeline(stages,currentIndex){
+const el=document.getElementById('timeline');
+if(!stages||!stages.length){el.innerHTML='';return}
+let html='';
+stages.forEach((s,i)=>{
+if(i>currentIndex)return;
+const isDone=i<currentIndex;
+const nodeCls=isDone?'done':'current';
+html+='<div class="tl-item">';
+html+='<div class="tl-node '+nodeCls+'" aria-label="Stage '+escapeHtml(String(s.index))+': '+(isDone?'completed':'current')+'"></div>';
+html+='<div class="tl-label '+nodeCls+'" title="'+escapeHtml(s.title)+'">'+escapeHtml(s.title)+'</div>';
+html+='</div>';
+if(i<currentIndex)html+='<div class="tl-connector done" aria-hidden="true"></div>';
+});
+el.innerHTML=html;
+}
 
-// --- Admin ---
+/* ============================================================
+   Status indicator
+   ============================================================ */
+function setRefreshStatus(ok){
+isConnected=ok;
+document.getElementById('status-dot').className='status-dot'+(ok?' live':'');
+document.getElementById('status-text').textContent=ok?t('borderquest.dashboard.live'):t('borderquest.dashboard.offline');
+document.getElementById('status-sr').textContent=ok?'Connection to server is live':'Connection to server lost';
+}
+
+/* ============================================================
+   Polling
+   ============================================================ */
+async function pollAll(){
+const ctrl=newPollSignal();
+const signal=pollSignal;
+const results=await Promise.all([
+fetchJSON('/api/status'),fetchJSON('/api/leaderboard'),
+fetchJSON('/api/altars'),fetchJSON('/api/stages')
+]);
+if(signal.aborted)return;
+const[status,lb,altars,stages]=results;
+if(status)renderStatus(status);else setRefreshStatus(false);
+if(lb)renderLeaderboard(lb);
+if(altars)renderAltars(altars);
+if(stages){lastStages=stages.stages;if(lastStatus)renderTimeline(lastStages,lastStatus.stageZeroBased)}
+}
+
+/* ============================================================
+   Confirm dialog
+   ============================================================ */
+let confirmResolve=null;
+function confirmAction(msg){
+return new Promise(resolve=>{
+confirmResolve=resolve;
+document.getElementById('confirm-desc').textContent=msg;
+document.getElementById('confirm-overlay').classList.add('open');
+document.getElementById('confirm-ok').focus();
+});
+}
+document.getElementById('confirm-ok').addEventListener('click',()=>{
+document.getElementById('confirm-overlay').classList.remove('open');
+if(confirmResolve){confirmResolve(true);confirmResolve=null}
+});
+document.getElementById('confirm-cancel').addEventListener('click',()=>{
+document.getElementById('confirm-overlay').classList.remove('open');
+if(confirmResolve){confirmResolve(false);confirmResolve=null}
+});
+document.getElementById('confirm-overlay').addEventListener('click',e=>{
+if(e.target===e.currentTarget){
+document.getElementById('confirm-overlay').classList.remove('open');
+if(confirmResolve){confirmResolve(false);confirmResolve=null}
+}
+});
+
+/* ============================================================
+   Admin
+   ============================================================ */
 function toggleAdmin(){
 const modal=document.getElementById('admin-modal');
-const open=modal.classList.contains('open');
-if(open){modal.classList.remove('open');return}
+if(modal.classList.contains('open')){closeAdminModal();return}
 modal.classList.add('open');
-if(adminPassword)switchToPanel();
+if(adminPassword)switchToPanelView();
+resetAdminTimeout();
 }
-
-function adminLogin(){
-const pwd=document.getElementById('admin-password').value;
-fetch('/api/admin/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pwd})})
-.then(r=>r.json()).then(d=>{
-if(d.success){
-adminPassword=pwd;
-sessionStorage.setItem('bq_admin_password',pwd);
-switchToPanel();
-}else{
-document.getElementById('login-error').style.display='block';
+function closeAdminModal(){
+document.getElementById('admin-modal').classList.remove('open');
+document.getElementById('admin-btn').focus();
+if(adminTimeout)clearTimeout(adminTimeout);
 }
-}).catch(()=>{
-document.getElementById('login-error').textContent='Connection error';
-document.getElementById('login-error').style.display='block';
+function resetAdminTimeout(){
+if(adminTimeout)clearTimeout(adminTimeout);
+adminTimeout=setTimeout(()=>{adminLogout();showToast(t('borderquest.dashboard.toast_expired'),'info')},ADMIN_TTL);
+}
+document.getElementById('admin-modal').addEventListener('keydown',e=>{
+if(e.key==='Escape'&&document.getElementById('admin-modal').classList.contains('open'))closeAdminModal();
 });
-}
+document.getElementById('admin-modal').addEventListener('keydown',e=>{
+if(e.key!=='Tab')return;
+const modal=document.getElementById('admin-modal');
+if(!modal.classList.contains('open'))return;
+const focusable=modal.querySelectorAll('button,input,textarea,[tabindex]:not([tabindex="-1"])');
+if(!focusable.length)return;
+const first=focusable[0],last=focusable[focusable.length-1];
+if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
+else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
+});
 
-function switchToPanel(){
+async function adminLogin(){
+const pwd=document.getElementById('admin-password').value;
+const r=await fetchWithRetry('/api/admin/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pwd})});
+if(r&&r.success){
+adminPassword=pwd;sessionStorage.setItem('bq_admin_password',pwd);
+switchToPanelView();resetAdminTimeout();
+showToast(t('borderquest.dashboard.toast_logged_in'),'success');
+}else{document.getElementById('login-error').style.display='block'}
+}
+function switchToPanelView(){
 document.getElementById('admin-login-view').style.display='none';
 document.getElementById('admin-panel-view').style.display='block';
 loadConfig();
 }
-
 function adminLogout(){
-adminPassword='';
-sessionStorage.removeItem('bq_admin_password');
+adminPassword='';sessionStorage.removeItem('bq_admin_password');
 document.getElementById('admin-login-view').style.display='block';
 document.getElementById('admin-panel-view').style.display='none';
 document.getElementById('admin-password').value='';
 document.getElementById('login-error').style.display='none';
-document.getElementById('admin-modal').classList.remove('open');
+closeAdminModal();if(adminTimeout)clearTimeout(adminTimeout);
+showToast(t('borderquest.dashboard.toast_logged_out'),'info');
 }
 
-function showFeedback(msg,type){
-const el=document.getElementById('admin-feedback');
-el.textContent=msg;
-el.className='feedback '+type;
+async function adminAction(action){
+const labels={
+reload:t('borderquest.dashboard.admin_reload'),
+skip:t('borderquest.dashboard.admin_skip'),
+reset:t('borderquest.dashboard.admin_reset')
+};
+if(action==='reset'){
+const ok=await confirmAction(t('borderquest.dashboard.confirm_reset_msg'));
+if(!ok)return;
+}
+showToast(t('borderquest.dashboard.toast_executing',labels[action]),'info');
+const r=await fetchWithRetry('/api/admin/command',{
+method:'POST',headers:{'Content-Type':'application/json'},
+body:JSON.stringify({password:adminPassword,action})
+});
+if(r&&r.success){showToast(r.message||t('borderquest.dashboard.toast_done',labels[action]),'success');pollAll()}
+else{showToast(r&&r.message?r.message:t('borderquest.dashboard.toast_cmd_fail'),'error')}
 }
 
-function adminAction(action){
-showFeedback('Executing...','success');
-fetch('/api/admin/command',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPassword,action:action})})
-.then(r=>r.json()).then(d=>{
-showFeedback(d.message||(d.success?'Done':'Error'),d.success?'success':'error');
-if(d.success){poll();pollLeaderboard();pollAltars();}
-}).catch(()=>showFeedback('Network error','error'));
+let configLoadAttempted=false;
+async function loadConfig(){
+const r=await fetchWithRetry('/api/admin/config/get',{
+method:'POST',headers:{'Content-Type':'application/json'},
+body:JSON.stringify({password:adminPassword})
+});
+if(r&&r.config){
+document.getElementById('config-editor').value=formatJson(r.config);
+if(configLoadAttempted)showToast(t('borderquest.dashboard.toast_config_loaded'),'success');
+configLoadAttempted=true;
+}else{if(configLoadAttempted)showToast(t('borderquest.dashboard.toast_config_fail'),'error')}
 }
-
-function loadConfig(){
-showFeedback('Loading...','success');
-fetch('/api/admin/config?password='+encodeURIComponent(adminPassword))
-.then(r=>r.json()).then(d=>{
-if(d.config){
-document.getElementById('config-editor').value=formatJson(d.config);
-showFeedback('Config loaded','success');
-}else{
-showFeedback('Failed to load config','error');
-}
-}).catch(()=>showFeedback('Network error','error'));
-}
-
 function saveConfig(){
 const raw=document.getElementById('config-editor').value;
-showFeedback('Saving...','success');
-fetch('/api/admin/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPassword,config:raw})})
-.then(r=>r.json()).then(d=>{
-showFeedback(d.message||(d.success?'Config saved and reloaded':'Error'),d.success?'success':'error');
-if(d.success){poll();}
-}).catch(()=>showFeedback('Network error','error'));
+try{JSON.parse(raw)}catch(e){showToast(t('borderquest.dashboard.toast_invalid_json',e.message),'error');return}
+showToast(t('borderquest.dashboard.toast_saving'),'info');
+fetchWithRetry('/api/admin/config',{
+method:'POST',headers:{'Content-Type':'application/json'},
+body:JSON.stringify({password:adminPassword,config:raw})
+}).then(r=>{
+if(r&&r.success){showToast(r.message||t('borderquest.dashboard.toast_saved'),'success');pollAll()}
+else{showToast(r&&r.message?r.message:t('borderquest.dashboard.toast_save_fail'),'error')}
+});
 }
+function formatJson(s){try{return JSON.stringify(JSON.parse(s),null,2)}catch(e){return s}}
 
-function formatJson(s){
-try{return JSON.stringify(JSON.parse(s),null,2)}
-catch(e){return s}
+/* ============================================================
+   Event listeners
+   ============================================================ */
+document.getElementById('admin-btn').addEventListener('click',toggleAdmin);
+document.getElementById('admin-login-btn').addEventListener('click',adminLogin);
+document.getElementById('admin-password').addEventListener('keydown',e=>{if(e.key==='Enter')adminLogin()});
+document.getElementById('admin-logout-btn').addEventListener('click',adminLogout);
+document.getElementById('action-reload').addEventListener('click',()=>adminAction('reload'));
+document.getElementById('action-skip').addEventListener('click',()=>adminAction('skip'));
+document.getElementById('action-reset').addEventListener('click',()=>adminAction('reset'));
+document.getElementById('action-save-config').addEventListener('click',saveConfig);
+document.getElementById('action-load-config').addEventListener('click',loadConfig);
+
+/* ============================================================
+   Init
+   ============================================================ */
+async function init(){
+  showSkeleton();
+  await loadStrings();
+  applyStrings();
+  setRefreshStatus(false);
+  pollAll();
+  setInterval(pollAll,5000);
 }
-
-// --- Init ---
-poll();pollLeaderboard();pollAltars();
-setInterval(poll,5000);
-setInterval(pollLeaderboard,5000);
-setInterval(pollAltars,5000);
+init();
 </script>
 </body>
 </html>
