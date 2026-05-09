@@ -1,6 +1,6 @@
 # Border Quest — Agent Instructions
 
-Server-side Fabric mod for Minecraft 1.21. Single-module Gradle project.
+Server-side Fabric mod for Minecraft 1.21.11. Single-module Gradle project.
 
 ## Build
 
@@ -10,13 +10,18 @@ java -jar gradle/wrapper/gradle-wrapper.jar build
 ```
 Requires Java 21.
 
-Output: `build/libs/border-quest-<version>.jar` (version from `gradle.properties`, or override with `-Pmod_version=X.Y.Z`).
+Output: `build/libs/border-quest-<mcversion>-<version>.jar` (version from `gradle.properties`, or override with `-Pmod_version=X.Y.Z`).
 
 No test, lint, or typecheck commands exist.
 
 CI:
 - `build.yml` runs on all branches/PRs (compile check, no release)
 - `release.yml` triggers on tag `v*` → builds, creates GitHub Release, publishes to Modrinth
+
+Branches:
+- `develop` — main dev branch (no releases)
+- `1.21.11` — stable branch for Minecraft 1.21.11 releases
+- Tags created on version branches only (`git tag vX.Y.Z` from `1.21.11`)
 
 ## Source layout
 
