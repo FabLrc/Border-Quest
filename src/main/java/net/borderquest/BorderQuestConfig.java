@@ -13,6 +13,7 @@ import java.util.List;
 
 import static net.borderquest.StageDefinition.CategoryReq;
 import static net.borderquest.StageDefinition.ItemReq;
+import static net.borderquest.StageDefinition.XpReq;
 
 /**
  * Configuration du mod chargée depuis config/borderquest.json.
@@ -46,6 +47,8 @@ public class BorderQuestConfig {
      * Changez cette valeur si votre monde Nether utilise une échelle différente.
      */
     public double netherScale = 8.0;
+
+    public int borderExpansionDurationSeconds = 10;
 
     // -----------------------------------------------------------------------
     // Particules autels
@@ -213,9 +216,11 @@ public class BorderQuestConfig {
         if (discordWebhookUrl == null) { discordWebhookUrl = ""; modified = true; }
         if (discordUsername == null || discordUsername.isBlank()) { discordUsername = "Border Quest"; modified = true; }
         if (discordAvatarUrl == null) { discordAvatarUrl = ""; modified = true; }
+        if (borderExpansionDurationSeconds <= 0) { borderExpansionDurationSeconds = 10; modified = true; }
         for (StageDefinition s : stages) {
             if (s.requirements == null) { s.requirements = List.of(); modified = true; }
             if (s.categoryRequirements == null) { s.categoryRequirements = List.of(); modified = true; }
+            if (s.xpRequirements == null) { s.xpRequirements = List.of(); modified = true; }
             if (s.rewards == null) { s.rewards = new ArrayList<>(); modified = true; }
             if (s.unlockRecipes == null) { s.unlockRecipes = new ArrayList<>(); modified = true; }
         }
@@ -256,7 +261,8 @@ public class BorderQuestConfig {
         return List.of(
             new StageDefinition(10, "Defricher la zone",
                 List.of(new ItemReq("minecraft:cobblestone", 64)),
-                List.of(new CategoryReq("logs", 64))),
+                List.of(new CategoryReq("logs", 64)),
+                List.of(new XpReq(100))),
 
             new StageDefinition(25, "Premiers pas vers la civilisation",
                 List.of(

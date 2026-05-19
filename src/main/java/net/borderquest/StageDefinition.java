@@ -11,6 +11,7 @@ public class StageDefinition {
     public String title;
     public List<ItemReq> requirements;
     public List<CategoryReq> categoryRequirements;
+    public List<XpReq> xpRequirements;
 
     /** Item IDs dont les recettes sont débloquées à partir de ce stade. Vide = aucun nouveau craft. */
     public List<String> unlockRecipes = new java.util.ArrayList<>();
@@ -24,10 +25,16 @@ public class StageDefinition {
 
     public StageDefinition(double borderRadius, String title, List<ItemReq> requirements,
                            List<CategoryReq> categoryRequirements) {
+        this(borderRadius, title, requirements, categoryRequirements, List.of());
+    }
+
+    public StageDefinition(double borderRadius, String title, List<ItemReq> requirements,
+                           List<CategoryReq> categoryRequirements, List<XpReq> xpRequirements) {
         this.borderRadius = borderRadius;
         this.title = title;
         this.requirements = requirements;
         this.categoryRequirements = categoryRequirements;
+        this.xpRequirements = xpRequirements;
     }
 
     public double getDiameter() {
@@ -38,6 +45,8 @@ public class StageDefinition {
      * Paire item ID -> quantité requise.
      */
     public record ItemReq(String itemId, int count) {}
+
+    public record XpReq(int count) {}
 
     /**
      * Catégorie de ressource -> quantité requise.

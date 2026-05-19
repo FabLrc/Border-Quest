@@ -28,6 +28,9 @@ run/
 # Claude
 .claude/
 
+# OmO
+.omo/
+
 # Servers folder
 server/
 start-server.sh

@@ -55,6 +55,7 @@ public class BorderQuestManager {
     private final Path savePath;
 
     private List<ItemReq> resolvedRequirements = new ArrayList<>();
+    private List<StageDefinition.XpReq> resolvedXpRequirements = new ArrayList<>();
     private Set<ResourceKey<Biome>> detectedBiomes = new HashSet<>();
     private SidebarDisplay sidebarDisplay;
 
@@ -136,6 +137,7 @@ public class BorderQuestManager {
     public void resolveRequirements() {
         StageDefinition stage = getCurrentStage();
         resolvedRequirements = new ArrayList<>();
+        resolvedXpRequirements = new ArrayList<>();
         if (stage.requirements != null) resolvedRequirements.addAll(stage.requirements);
 
         if (stage.categoryRequirements != null && !stage.categoryRequirements.isEmpty()) {
@@ -146,9 +148,14 @@ public class BorderQuestManager {
                 resolvedRequirements.add(resolved);
             }
         }
+
+        if (stage.xpRequirements != null && !stage.xpRequirements.isEmpty()) {
+            resolvedXpRequirements.addAll(stage.xpRequirements);
+        }
     }
 
     public List<ItemReq> getResolvedRequirements() { return resolvedRequirements; }
+    public List<StageDefinition.XpReq> getResolvedXpRequirements() { return resolvedXpRequirements; }
 
     // -----------------------------------------------------------------------
     // Déblocage de recettes
@@ -384,6 +391,8 @@ public class BorderQuestManager {
         for (ItemReq req : resolvedRequirements) {
             if (state.submittedItems.getOrDefault(req.itemId(), 0) < req.count()) return false;
         }
+        int totalXpRequired = resolvedXpRequirements.stream().mapToInt(StageDefinition.XpReq::count).sum();
+        if (totalXpRequired > 0 && state.submittedXp < totalXpRequired) return false;
         return true;
     }
 
@@ -444,12 +453,49 @@ public class BorderQuestManager {
             .withStyle(ChatFormatting.GREEN);
     }
 
+    public Component submitXp(ServerPlayer player, int amount) {
+        if (isLastStage())
+            return ModTranslations.t(TranslationKeys.SUBMIT_XP_ALREADY).withStyle(ChatFormatting.GOLD);
+
+        int totalXpRequired = resolvedXpRequirements.stream().mapToInt(StageDefinition.XpReq::count).sum();
+        if (totalXpRequired <= 0)
+            return ModTranslations.t(TranslationKeys.SUBMIT_XP_NO_REQUIREMENTS).withStyle(ChatFormatting.YELLOW);
+
+        if (amount <= 0)
+            return ModTranslations.t(TranslationKeys.SUBMIT_XP_INVALID).withStyle(ChatFormatting.RED);
+
+        int currentXp = player.totalExperience;
+        if (currentXp <= 0)
+            return ModTranslations.t(TranslationKeys.SUBMIT_XP_NOT_ENOUGH).withStyle(ChatFormatting.RED);
+
+        int remaining = totalXpRequired - state.submittedXp;
+        if (remaining <= 0)
+            return ModTranslations.t(TranslationKeys.SUBMIT_COMPLETE).withStyle(ChatFormatting.GREEN);
+
+        int toDonate = Math.min(amount, Math.min(remaining, currentXp));
+        player.giveExperiencePoints(-toDonate);
+        state.submittedXp += toDonate;
+
+        String playerName = player.getName().getString();
+        state.playerNames.put(player.getStringUUID(), playerName);
+
+        save();
+        updateSidebar();
+
+        if (isStageComplete()) {
+            advanceStage();
+            return ModTranslations.t(TranslationKeys.SUBMIT_XP_COMPLETE, toDonate).withStyle(ChatFormatting.GREEN);
+        }
+        return ModTranslations.t(TranslationKeys.SUBMIT_XP_PROGRESS, toDonate, state.submittedXp, totalXpRequired).withStyle(ChatFormatting.GREEN);
+    }
+
     private void advanceStage() {
         // Récupérer les récompenses avant d'incrémenter
         List<StageDefinition.Reward> rewards = STAGES().get(state.currentStage).rewards;
 
         state.currentStage++;
         state.submittedItems.clear();
+        state.submittedXp = 0;
         save();
 
         StageDefinition newStage = STAGES().get(state.currentStage);
@@ -547,7 +593,20 @@ public class BorderQuestManager {
             t.append(ModTranslations.t(done ? TranslationKeys.STATUS_ITEM_OK : TranslationKeys.STATUS_ITEM_NOK,
                 name, submitted, req.count()));
         }
-        t.append(ModTranslations.t(TranslationKeys.STATUS_HINT));
+
+        int totalXpRequired = resolvedXpRequirements.stream().mapToInt(StageDefinition.XpReq::count).sum();
+        if (totalXpRequired > 0) {
+            int submittedXp = state.submittedXp;
+            boolean done = submittedXp >= totalXpRequired;
+            t.append(ModTranslations.t(done ? TranslationKeys.STATUS_XP_OK : TranslationKeys.STATUS_XP_NOK,
+                submittedXp, totalXpRequired));
+        }
+
+        if (totalXpRequired > 0) {
+            t.append(ModTranslations.t(TranslationKeys.STATUS_XP_HINT));
+        } else {
+            t.append(ModTranslations.t(TranslationKeys.STATUS_HINT));
+        }
         return t;
     }
 

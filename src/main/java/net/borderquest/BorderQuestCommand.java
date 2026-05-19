@@ -1,6 +1,7 @@
 package net.borderquest;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.commands.CommandBuildContext;
@@ -36,6 +37,10 @@ public class BorderQuestCommand {
                 // /bq submit — soumet les items de l'inventaire
                 .then(Commands.literal("submit")
                     .executes(BorderQuestCommand::submit))
+
+                .then(Commands.literal("submitxp")
+                    .then(Commands.argument("amount", IntegerArgumentType.integer(1))
+                        .executes(BorderQuestCommand::submitXp)))
 
                 // /bq reset — remet à zéro (op niveau 2)
                 .then(Commands.literal("reset")
@@ -97,6 +102,22 @@ public class BorderQuestCommand {
         return 1;
     }
 
+    private static int submitXp(CommandContext<CommandSourceStack> ctx) {
+        BorderQuestManager mgr = BorderQuest.manager;
+        if (mgr == null) { ctx.getSource().sendFailure(noManager()); return 0; }
+
+        var player = ctx.getSource().getPlayer();
+        if (player == null) {
+            ctx.getSource().sendFailure(
+                ModTranslations.t(TranslationKeys.CMD_PLAYER_ONLY).withStyle(ChatFormatting.RED));
+            return 0;
+        }
+
+        int amount = IntegerArgumentType.getInteger(ctx, "amount");
+        ctx.getSource().sendSuccess(() -> mgr.submitXp(player, amount), false);
+        return 1;
+    }
+
     private static int reset(CommandContext<CommandSourceStack> ctx) {
         BorderQuestManager mgr = BorderQuest.manager;
         if (mgr == null) { ctx.getSource().sendFailure(noManager()); return 0; }
@@ -127,8 +148,12 @@ public class BorderQuestCommand {
         for (var req : mgr.getResolvedRequirements()) {
             state.submittedItems.put(req.itemId(), req.count());
         }
+        for (var xpReq : mgr.getResolvedXpRequirements()) {
+            state.submittedXp = xpReq.count();
+        }
         state.currentStage++;
         state.submittedItems.clear();
+        state.submittedXp = 0;
         mgr.save();
         mgr.applyBorder();
         mgr.updateSidebar();

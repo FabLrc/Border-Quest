@@ -7,6 +7,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- **XP as a stage requirement**: Stages can now require experience points in addition to items.
+  New config field: `borderExpansionDurationSeconds` (default 10 seconds for border animation).
+  New stage field: `xpRequirements` (list of `{ "count": <int> }`).
+  New command: `/bq submitxp <amount>` — donate XP points toward the current stage objective.
+  XP progress is shown in `/bq status`, the tab-list sidebar HUD, and the web dashboard.
+  XP donations are taken from the player's total experience points (not levels).
+  Translation keys added: `borderquest.status.xp_*`, `borderquest.submit.xp_*`, `borderquest.hud.xp_progress`.
+
 - **Translation system**: All mod messages are now translatable via JSON language files.
   Added `borderquest.command.language` config option (`"en_us"` by default, `"fr_fr"` also bundled).
   New files: `ModTranslations.java`, `TranslationKeys.java`, `lang/en_us.json`, `lang/fr_fr.json`.

@@ -77,6 +77,15 @@ public class SidebarDisplay {
             t.append(ModTranslations.t(TranslationKeys.HUD_ITEM_PROGRESS, symbol, name, submitted, req.count()).withStyle(color));
         }
 
+        int totalXpRequired = manager.getResolvedXpRequirements().stream().mapToInt(StageDefinition.XpReq::count).sum();
+        if (totalXpRequired > 0) {
+            int submittedXp = state.submittedXp;
+            boolean done = submittedXp >= totalXpRequired;
+            ChatFormatting color = done ? ChatFormatting.GREEN : ChatFormatting.RED;
+            String symbol = done ? "\u2714 " : "\u2718 ";
+            t.append(ModTranslations.t(TranslationKeys.HUD_XP_PROGRESS, symbol, submittedXp, totalXpRequired).withStyle(color));
+        }
+
         return t;
     }
 

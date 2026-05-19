@@ -16,6 +16,8 @@ public class QuestState {
     /** item_id -> quantité soumise pour le stade actuel */
     public Map<String, Integer> submittedItems = new HashMap<>();
 
+    public int submittedXp = 0;
+
     /** UUID (string) -> total items donnés tous stades confondus */
     public Map<String, Integer> playerDonations = new HashMap<>();
 
@@ -31,6 +33,7 @@ public class QuestState {
     public void reset() {
         currentStage = 0;
         submittedItems.clear();
+        submittedXp = 0;
         playerDonations.clear();
         playerNames.clear();
     }
