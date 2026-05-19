@@ -59,6 +59,7 @@
   "borderquest.submit.no_xp_requirements": "Aucun XP requis pour ce stade.",
   "borderquest.submit.not_enough_xp": "Vous n'avez pas assez d'XP.",
   "borderquest.submit.invalid_xp_amount": "Montant d'XP invalide.",
+  "borderquest.submit.xp_already_met": "L'objectif XP est deja atteint pour ce stade.",
   "borderquest.submit.xp_complete": "Objectif atteint avec l'XP ! %d XP donnes. La barriere s'agrandit !",
   "borderquest.submit.xp_progress": "%d XP donnes (%d/%d requis).",
   "borderquest.status.xp_ok": "§a[OK] XP : %d/%d\n",

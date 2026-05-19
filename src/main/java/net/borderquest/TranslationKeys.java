@@ -65,6 +65,7 @@ public class TranslationKeys {
         SUBMIT_XP_NO_REQUIREMENTS = "borderquest.submit.no_xp_requirements",
         SUBMIT_XP_NOT_ENOUGH   = "borderquest.submit.not_enough_xp",
         SUBMIT_XP_INVALID      = "borderquest.submit.invalid_xp_amount",
+        SUBMIT_XP_ALREADY_MET  = "borderquest.submit.xp_already_met",
         SUBMIT_XP_COMPLETE     = "borderquest.submit.xp_complete",
         SUBMIT_XP_PROGRESS     = "borderquest.submit.xp_progress",
         STATUS_XP_OK           = "borderquest.status.xp_ok",

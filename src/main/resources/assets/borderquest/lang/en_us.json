@@ -59,6 +59,7 @@
   "borderquest.submit.no_xp_requirements": "No XP required for this stage.",
   "borderquest.submit.not_enough_xp": "You don't have enough XP.",
   "borderquest.submit.invalid_xp_amount": "Invalid XP amount.",
+  "borderquest.submit.xp_already_met": "The XP objective is already met for this stage.",
   "borderquest.submit.xp_complete": "Objective reached with XP! %d XP donated. The barrier is expanding!",
   "borderquest.submit.xp_progress": "Donated %d XP (%d/%d required).",
   "borderquest.status.xp_ok": "§a[OK] XP: %d/%d\n",

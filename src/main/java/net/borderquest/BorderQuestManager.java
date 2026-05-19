@@ -470,7 +470,7 @@ public class BorderQuestManager {
 
         int remaining = totalXpRequired - state.submittedXp;
         if (remaining <= 0)
-            return ModTranslations.t(TranslationKeys.SUBMIT_COMPLETE).withStyle(ChatFormatting.GREEN);
+            return ModTranslations.t(TranslationKeys.SUBMIT_XP_ALREADY_MET).withStyle(ChatFormatting.GREEN);
 
         int toDonate = Math.min(amount, Math.min(remaining, currentXp));
         player.giveExperiencePoints(-toDonate);
@@ -687,8 +687,28 @@ public class BorderQuestManager {
             return ModTranslations.t(TranslationKeys.ALTAR_ALREADY_DOWN).withStyle(ChatFormatting.GOLD);
 
         ItemStack held = player.getMainHandItem();
-        if (held.isEmpty())
+        if (held.isEmpty()) {
+            int totalXpRequired = resolvedXpRequirements.stream().mapToInt(StageDefinition.XpReq::count).sum();
+            int remainingXp = totalXpRequired - state.submittedXp;
+            if (totalXpRequired > 0 && remainingXp > 0) {
+                int currentXp = player.totalExperience;
+                if (currentXp > 0) {
+                    int toDonate = Math.min(remainingXp, currentXp);
+                    player.giveExperiencePoints(-toDonate);
+                    state.submittedXp += toDonate;
+                    state.playerNames.put(player.getStringUUID(), player.getName().getString());
+                    save();
+                    updateSidebar();
+                    if (isStageComplete()) {
+                        advanceStage();
+                        return ModTranslations.t(TranslationKeys.SUBMIT_XP_COMPLETE, toDonate).withStyle(ChatFormatting.GREEN);
+                    }
+                    return ModTranslations.t(TranslationKeys.SUBMIT_XP_PROGRESS, toDonate, state.submittedXp, totalXpRequired).withStyle(ChatFormatting.GREEN);
+                }
+                return ModTranslations.t(TranslationKeys.SUBMIT_XP_NOT_ENOUGH).withStyle(ChatFormatting.RED);
+            }
             return ModTranslations.t(TranslationKeys.ALTAR_HOLD_ITEM).withStyle(ChatFormatting.RED);
+        }
 
         String itemId = BuiltInRegistries.ITEM.getKey(held.getItem()).toString();
 
