@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
-## [2.1.0] — 2026-05-19
+## [2.1.0] - 2026-05-19
 
 ### Added
 
@@ -33,7 +33,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   - Thread-safe: all state reads/writes scheduled via `server.execute()` with `CompletableFuture`.
   New files: `DashboardServer.java`, `DashboardApi.java`, `dashboard.html`.
 
-## [2.0.0-beta] — 2026-05-09
+## [2.0.0-beta] - 2026-05-09
 
 ### Added
 
@@ -60,7 +60,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - **Biome fallback**: Logs category fallback uses oak_log (was sandstone).
 - **Altar color**: Orange color index on Xaero maps (was white).
 
-## [1.1.0] — 2026-05-09
+## [1.1.0] - 2026-05-09
 
 ### Added
 
@@ -87,7 +87,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - **Documentation**: README updated with build instructions, branch strategy,
   and recipe locking documentation.
 
-## [1.0.0] — 2026-05-09
+## [1.0.0] - 2026-05-09
 
 ### Added
 
