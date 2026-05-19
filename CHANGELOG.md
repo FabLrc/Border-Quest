@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.1.0] — 2026-05-19
+
 ### Added
 
 - **XP as a stage requirement**: Stages can now require experience points in addition to items.
